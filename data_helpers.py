@@ -140,13 +140,13 @@ def gettraindata(filedir: str, sample: str, flist_inputs: list, scalerdir: str, 
             if Is_standard_scaler:
                 scaler = preprocessing.StandardScaler()
                 scaler.fit(features_nopad)
-                #dump(scaler, scalerdir + "/std_scaler_nopup_ens_portal1.bin", compress=True)
+                dump(scaler, scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin", compress=True)
                 if Is_makeprints:
                     print("Applying standard scaler transformation")
             if Is_min_max_scaler:
                 scaler = preprocessing.MinMaxScaler()
                 scaler.fit(features_nopad)
-                #dump(scaler, scalerdir + "/min_max_scaler.bin", compress=True)
+                dump(scaler, scalerdir + "/min_max_scaler.bin", compress=True)
                 print("Applying Min Max scaler transformation")
 
             features_std = scaler.transform(features_nopad)

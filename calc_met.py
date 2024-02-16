@@ -27,7 +27,6 @@ from distillnet_setup import (
 )
 from distillnet_config import hparams, trainparams
 
-
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -78,10 +77,11 @@ def Metcalc_gen(lvec):
 
 def get_mets(
     filedir: str,
+    scalerdir: str,
     sample: str,
     flist_inputs: list,
     met_model,
-    device,
+    device: str,
     Events: int,
     Is_remove_padding: bool = True,
     Is_standard: bool = True,
@@ -144,11 +144,12 @@ def get_mets(
         if Is_standard:
             if Is_standard_scaler:
                 if len(flist_inputs) == 15:
-                    scaler = load("/work/tbrandes/work/Delphes_samples/scalers/std_scaler_nopup_ens.bin")
+                    f"/std_scaler_feat{len(flist_inputs)}.bin"
+                    scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
                 if len(flist_inputs) == 16:
-                    scaler = load("/work/tbrandes/work/Delphes_samples/scalers/std_scaler.bin")
+                    scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
             if Is_min_max_scaler:
-                scaler = load("/work/tbrandes/work/Delphes_samples/scalers/min_max_scaler.bin")
+                scaler = load(scalerdir + "/min_max_scaler.bin")
             features_std = scaler.transform(features_np)
 
         convertvec_etaphipt(default_vec_np)
