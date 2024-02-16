@@ -1,4 +1,8 @@
-###ABCNet
+"""
+Packages used to obtain flops from GNN and DistillNet
+"""
+
+###GNN
 from typing import Optional, Union
 import tensorflow as tf
 from tensorflow.keras import Sequential, Model
