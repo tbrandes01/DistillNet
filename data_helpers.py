@@ -69,6 +69,13 @@ def calcresponse(arr, genarr):
     return (np.array(arr) - np.array(genarr)) / np.array(genarr)
 
 
+def join_and_makedir(parent_path: str, Folder: str):
+    new_dir = os.path.join(parent_path, Folder)
+    if not os.path.isdir(new_dir):
+        os.makedirs(new_dir)
+    return new_dir
+
+
 def convertvec_etaphipt(p_vec, Is_log: bool = False, Is_remove_padding: bool = False):
     vec_input = vector.array({'px': p_vec[:, 0], 'py': p_vec[:, 1], 'pz': p_vec[:, 2], 'energy': p_vec[:, 3]})
     p_vec[:, 0], p_vec[:, 1], p_vec[:, 2] = vec_input.eta, vec_input.phi, vec_input.pt
@@ -92,10 +99,14 @@ def makeratio(val_of_bins_x1, val_of_bins_x2):
 
 
 
-def gettraindata(filedir: str, sample: str, flist_inputs: list, scalerdir: str, Is_dtrans: bool = False, Is_remove_padding: bool = True,
+def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list, scalerdir: str, Is_dtrans: bool = False, Is_remove_padding: bool = True,
                  Is_standard: bool = True, Is_min_max_scaler: bool = False, Is_standard_scaler: bool = True, Is_makeplots: bool = False, Is_makeprints: bool= True):
 
     filename = os.path.join(filedir, sample)
+    filename_test = os.path.join(filedir, sample_test)
+    with h5py.File(filename_test, "r") as f:
+        featurelist_test = f["distill_inputs_default"][flist_inputs, :, :]
+        _, n_events_test, _ = featurelist_test.shape
     if Is_makeprints:
         print(f'Accessing {filename} for training DistillNet')
 
@@ -177,7 +188,7 @@ def gettraindata(filedir: str, sample: str, flist_inputs: list, scalerdir: str, 
         # with h5py.File('/work/tbrandes/work/data/' + 'distillinputs_1event', "w") as hf:
         #     hf.create_dataset("distillnet_inputs", data=one_event)
         #     do_stuff
-        return features_std, abc_nopad, n_events
+        return features_std, abc_nopad, n_events, n_events_test
 
 
 def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: str, device:str, min_event: int, Is_remove_padding: bool = True,
