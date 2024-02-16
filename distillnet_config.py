@@ -9,4 +9,6 @@ hparams = {'batch_size': 256,
 trainparams = {'n_epochs': 20,
                "patience": 5,
                "best_loss": 0.17,
+               "train_sample": "wjets", #sample for training
+               "test_sample": "ttbar",  #sample for testing
                }

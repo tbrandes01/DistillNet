@@ -1,4 +1,3 @@
-
 import torch
 from torch.utils.data import Dataset
 import torch.utils.data as data
@@ -21,10 +20,19 @@ from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
+filedir = #specify where the downloaded sample is
 
-filedir = '/work/tbrandes/work/data/'
+w_sample = 'distill_wjets_swd.h5' #name of sample
+savedir = './Results/'
+
 w_sample = 'distill_wjets_emd_prl.h5'
-zprime_sample = 'distill_zprime_emd_prl.h5'
+ttbar_sample = 'distill_ttbar_swd.h5'
+
+
+if Samplechoice == 'wjets':
+    sample = w_sample
+elif Samplechoice == 'ttbar':
+    sample = ttbar_sample
 
 savedir = '/work/tbrandes/work/Delphes_samples/'
 modelsavedir =  os.path.join(savedir, 'Models_v5/')
