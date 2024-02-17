@@ -8,7 +8,7 @@ from joblib import load
 from data_helpers import convertvec_etaphipt 
 from distillnet_setup import modelpredictions, FeatureDataset
 from distillnet_config import hparams, trainparams
-
+from tqdm import tqdm
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -149,7 +149,7 @@ def get_mets(
         return predictions, abcw_np, puppiw_np, met_distillnet, met_abc, met_puppi, met_gen
 
 
-def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata, flist_inputs: list, met_model, device: str, is_remove_padding: bool, is_min_max_scaler: bool, is_standard_scaler: bool, is_dtrans: bool):
+def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata: tuple, flist_inputs: list, met_model, device: str, is_remove_padding: bool, is_min_max_scaler: bool, is_standard_scaler: bool, is_dtrans: bool):
     
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
     maxevent = int(nn_inputdata[3])
@@ -168,7 +168,7 @@ def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata,
         met_g.append(met_gen)
 
     resolution_model, resolution_abc, resolution_puppi = resolution(met_d, met_g), resolution(met_a, met_g), resolution(met_p, met_g)
-    return met_a, met_p, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model
+    return met_a, met_p, met_d, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model
 
 
 def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False):

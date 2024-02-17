@@ -78,9 +78,10 @@ def join_and_makedir(parent_path: str, Folder: str):
 
 
 def make_finalprints(
-    resolution_model: float, resolution_abc: float, resolution_puppi: float, saveinfo: str, flist_names: list, flist_inputs: list
+    resolution_model: float, binratio: float, resolution_abc: float, resolution_puppi: float, saveinfo: str, flist_names: list, flist_inputs: list
 ):
     print("Resolution DistillNet", resolution_model)
+    print(f"last bin (between 0.95 and 1) ratio: {binratio:.3f}")
     print("Resolution AbcNet", resolution_abc)
     print("Resolution Puppi", resolution_puppi)
     print("Saveinfo: ", saveinfo)
@@ -591,7 +592,6 @@ def make_histoweight_mod(
     plt.ylabel(r"$N_\mathrm{Particles}\;/\;0.05$")
     plt.minorticks_on()
 
-    print(f"last bin (between 0.95 and 1) ratio: { bins2[-1] / bins1[-1]:.3f}")
     sample_file_name1 = "wgts"
     if is_savefig:
         plt.savefig(

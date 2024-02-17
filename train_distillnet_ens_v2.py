@@ -12,7 +12,7 @@ matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
 
-def do_training_and_physicstest_DistillNet(filedir: str, savedir: str, device: str='cuda:0', run_number: int=0, numtests: int=0, wgt: float=3, is_ensembletest: bool=False):
+def do_training_and_physicstest_DistillNet(filedir: str, savedir: str, device: str = 'cuda:0', run_number: int = 0, numtests: int = 0, wgt: float = 3, is_ensembletest: bool = False):
 
     modelsavedir = join_and_makedir(savedir, 'Models/')
     plotdir = join_and_makedir(savedir, 'Plots/')
@@ -52,11 +52,7 @@ def do_training_and_physicstest_DistillNet(filedir: str, savedir: str, device: s
                                                                                                         hparams['maketrain_particles'], hparams['L1_hsize'],
                                                                                                         hparams['L2_hsize'], hparams['n_outputs'],
                                                                                                         )
-    print('Model hyperparams ', hparams)
-    print('Model trainparams ', trainparams)
-    print("Model's state_dict:")
-    for param_tensor in model.state_dict():
-        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+
     model, losslist, validationloss = do_training(model, criterion, optimizer, device, train_loader, test_loader, test, savedir,
                                                 modelsavedir, saveinfo, weights_highval, trainparams['n_epochs'], is_dotaylor=is_do_taylor,
                                                 is_weighted_error=is_weighted_error)
@@ -66,13 +62,13 @@ def do_training_and_physicstest_DistillNet(filedir: str, savedir: str, device: s
                                 hparams['n_outputs'])
     
 
-    met_a, met_p, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model = get_met_pyhsicstest(filedir, scalerdir, trainparams['test_sample'],
+    met_a, met_p, met_d, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model = get_met_pyhsicstest(filedir, scalerdir, trainparams['test_sample'],
                                                                                                                                nn_inputdata, flist_inputs, met_model, device, is_remove_padding=is_remove_padding, is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
     make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots=is_displayplots)
     last_bin_ratio = make_histoweight_mod(distill_wgts, abc_wgts, puppi_wgts, resolution_model, resolution_abc,
                                         resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, trainparams['test_sample'], is_displayplots=is_displayplots)
     make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
-    make_finalprints(resolution_model, resolution_abc, resolution_puppi, saveinfo, flist_names, flist_inputs)
+    make_finalprints(resolution_model, last_bin_ratio, resolution_abc, resolution_puppi, saveinfo, flist_names, flist_inputs)
     return resolution_model
 
 

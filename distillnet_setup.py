@@ -5,10 +5,8 @@ import torch.utils.data as data
 import torch.nn as nn
 from tqdm import tqdm
 import numpy as np
-import os
 from distillnet_config import hparams, trainparams
 from tayloranalysis.cls import TaylorAnalysis
-import time
 
 
 class WeightedMAE(nn.L1Loss):
@@ -107,6 +105,11 @@ def nn_setup(data, device:str, batch_size: int, maketrain_particles: int, l1_hsi
     model.to(device)
     criterion = nn.L1Loss() #placeholder criterion for later modified weighted MAE Loss
     optimizer = torch.optim.Adam(model.parameters(), lr=hparams['lr'])
+    print('Model hyperparams ', hparams)
+    print('Model trainparams ', trainparams)
+    print("Model's state_dict:")
+    for param_tensor in model.state_dict():
+        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
     return model, criterion, optimizer, train_loader, test_loader, test, input_size
 
 
