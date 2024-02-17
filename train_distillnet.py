@@ -14,7 +14,7 @@ import time
 from data_helpers import (fl_inputs, fl_vecs, convertvec_etaphipt, gettraindata, make_lossplot,
                         make_histoweight, make_histoweight_mod, make_metplots, join_and_makedir)
 from distillnet_setup import makedataloaders, nn_setup, validation, do_training, load_bestmodel
-from distillnet_config import hparams, trainparams
+from distillnet_config import hparams, trainparams, bool_val
 from calc_met import get_mets, resolution, genfunc, make_resolutionplots
 import matplotlib
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
@@ -40,19 +40,19 @@ print(len(flist_inputs))
 
 saveinfo = f"_trainpart_{hparams['maketrain_particles']:.2E}__Batchs_{hparams['batch_size']}__numep_{trainparams['n_epochs']}_7_3_bnL4_werr3_nopup"
 
-is_displayplots = False
-is_savefig = True
-is_remove_padding = True
-is_min_max_scaler = False
-is_standard_scaler = True
-is_dtrans = False
-is_do_taylor = True
-is_weighted_error = True
-is_trial = True
+is_displayplots = bool_val['is_displayplots']
+is_savefig = bool_val['is_savefig']
+is_remove_padding = bool_val['is_remove_padding']
+is_min_max_scaler = bool_val['is_mix_max_scaler']
+is_standard_scaler = bool_val['is_standard_scaler']
+is_dtrans = bool_val['is_dtrans']
+is_do_taylor = bool_val['is_do_taylor']
+is_weighted_error = bool_val['is_weighted_error']
+is_trial = bool_val['is_trial']
 if is_min_max_scaler:
-    saveinfo = saveinfo + "_minmaxscaler"
+    saveinfo += "_minmaxscaler"
 if is_standard_scaler:
-    saveinfo = saveinfo + "_stdscaler"
+    saveinfo += "_stdscaler"
 #MODIFIED LOADING PROCEDURE
 
 def main():
@@ -101,7 +101,7 @@ def main():
     make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots=is_displayplots)
     last_bin_ratio = make_histoweight_mod(distill_wgts, abc_wgts, puppi_wgts, resolution_model, resolution_abc,
                                         resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, trainparams['test_sample'], is_displayplots=is_displayplots)
-    make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=True, is_displayplots=is_displayplots)
+    make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
     print(f"Last bin ratio {last_bin_ratio*100:.2f} %")
     print('Savinfo: ', saveinfo)
     print('Inputs used for training: ', flist_names)
