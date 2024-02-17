@@ -101,9 +101,10 @@ def load_bestmodel(saveinfo: str, modelsavedir: str, modelname: str, device: str
     return model
 
 
-def nn_setup(data, batch_size: int, maketrain_particles: int, l1_hsize: int, l2_hsize: int, n_outputs: int):
+def nn_setup(data, device:str, batch_size: int, maketrain_particles: int, l1_hsize: int, l2_hsize: int, n_outputs: int):
     train_loader, test_loader, input_size, test = makedataloaders(data, batch_size, maketrain_particles)
     model = DistillNet(input_size, l1_hsize, l2_hsize, n_outputs) 
+    model.to(device)
     criterion = nn.L1Loss() #placeholder criterion for later modified weighted MAE Loss
     optimizer = torch.optim.Adam(model.parameters(), lr=hparams['lr'])
     return model, criterion, optimizer, train_loader, test_loader, test, input_size
@@ -149,7 +150,7 @@ def makedataloaders(dat: tuple, batch_size: int, num_particles: int):
     )  # use dataloader to iterate over validation dataset
 
     input_size = dataset_train.numfeatures()  # size of input vector
-    weights_highval = calc_datasetweights(dat[1][0:num_particles], is_makeprints=True)
+    weights_highval = calc_datasetweights(dat[1][0:num_particles], is_makeprints=False)
 
     return train_loader, test_loader, input_size, test
 
@@ -246,12 +247,12 @@ def do_training(model, criterion, optimizer, device: str, train_loader, test_loa
                 torch.save(model.model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
             else:
                 torch.save(model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
-            print("best model at: ", epoch)
+            print("best training model at epoch: ", epoch)
         print("Training loss per epoch: ", np.mean(_losslist))
         if valid:  # validation
             current_loss = validation(model, device, test_loader, criterion, weights_highval, is_weighted_error)
             validationloss.append(current_loss)
-            print("The Current Loss:", current_loss)
+            print("The current validation loss:", current_loss)
             if current_loss < best_loss:
                 best_loss = current_loss
                 modelname = "bestmodel_valloss"
@@ -259,7 +260,7 @@ def do_training(model, criterion, optimizer, device: str, train_loader, test_loa
                     torch.save(model.model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
                 else:
                     torch.save(model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
-                print("best model at: ", epoch)
+                print("best validation model at epoch: ", epoch)
             # Early stopping
             if current_loss > last_loss:
                 triggertimes += 1

@@ -21,8 +21,8 @@ def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_n
     timestr = time.strftime("%Y%m%d-%H%M%S")
     flist_inputs = [member.value for member in fl_inputs]
     flist_names = [fl_inputs(i).name for i in flist_inputs]
-    print(flist_names)
-    print(len(flist_inputs))
+    print('Input features:', flist_names)
+    print('Toal number of input features', len(flist_inputs))
 
     saveinfo = f"trainpart_{hparams['maketrain_particles']:.2E}__Batchs_{hparams['batch_size']}__numep_{trainparams['n_epochs']}__wgt_{wgt}"
     if is_ensembletest:
@@ -32,7 +32,7 @@ def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_n
     is_displayplots = bool_val['is_displayplots']
     is_savefig = bool_val['is_savefig']
     is_remove_padding = bool_val['is_remove_padding']
-    is_min_max_scaler = bool_val['is_mix_max_scaler']
+    is_min_max_scaler = bool_val['is_min_max_scaler']
     is_standard_scaler = bool_val['is_standard_scaler']
     is_dtrans = bool_val['is_dtrans']
     is_do_taylor = bool_val['is_do_taylor']
@@ -41,8 +41,10 @@ def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_n
         saveinfo += "_minmaxscaler"
     if is_standard_scaler:
         saveinfo += "_stdscaler"
-
-    print(saveinfo)
+    if is_do_taylor:
+        taylordir = join_and_makedir(savedir, 'Taylor/')
+        _ = join_and_makedir(taylordir, 'checkpoints/')
+    print('Saveinfo: ', saveinfo)
     nn_inputdata = gettraindata(filedir, trainparams['train_sample'], trainparams['test_sample'], flist_inputs, scalerdir, is_dtrans=is_dtrans, is_standard=True, is_remove_padding=is_remove_padding,
                                 is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_makeplots=False)
     model, criterion, optimizer, train_loader, test_loader, test, input_size = nn_setup(nn_inputdata, device, hparams['batch_size'],
@@ -64,11 +66,11 @@ def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_n
 
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
     maxevent = int(nn_inputdata[3])
-    print("Maxevent", maxevent)
+    print('Training done, calcluating MET....')
     minevent = int(hparams['maketrain_particles'] / 9000)
-    print("Minevent", minevent)
+    print('Toal Number of evaluated events:' , np.abs(maxevent - minevent))
     for i in tqdm(range(minevent, maxevent)):
-        pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(filedir, trainparams['test_sample'], flist_inputs, met_model, device, i, hparams['maketrain_particles'],
+        pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(filedir, scalerdir, trainparams['test_sample'], flist_inputs, met_model, device, i, hparams['maketrain_particles'],
                                                                         is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
         distill_wgts.append(pred)
         abc_wgts.append(abc)
@@ -87,8 +89,7 @@ def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_n
     last_bin_ratio = make_histoweight_mod(distill_wgts, abc_wgts, puppi_wgts, resolution_model, resolution_abc,
                                         resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, trainparams['test_sample'], is_displayplots=is_displayplots)
     make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
-    print(f"Last bin ratio {last_bin_ratio*100:.2f} %")
-    print('Savinfo: ', saveinfo)
+    print('Saveinfo: ', saveinfo)
     print('Inputs used for training: ', flist_names)
     print('Total number of inputs: ', len(flist_inputs))
     return resolution_model

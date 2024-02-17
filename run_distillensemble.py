@@ -5,7 +5,7 @@ from train_distillnet_ens_v2 import maketraining_distill
 from tap import Tap
 import os
 from distillnet_config import hparams, trainparams, dirs
-
+import numpy as np
 
 class Argparser(Tap):
     cuda: int

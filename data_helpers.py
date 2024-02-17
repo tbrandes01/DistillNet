@@ -579,7 +579,7 @@ def make_histoweight_mod(
     plt.ylabel(r"$N_\mathrm{Particles}\;/\;0.05$")
     plt.minorticks_on()
 
-    print("last bin (between 0.95 and 1) ratio:", bins2[-1] / bins1[-1])
+    print(f"last bin (between 0.95 and 1) ratio: { bins2[-1] / bins1[-1]:.3f}")
     sample_file_name1 = "wgts"
     if is_savefig:
         plt.savefig(
