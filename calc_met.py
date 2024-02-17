@@ -7,15 +7,7 @@ from sklearn import preprocessing
 from tqdm import tqdm
 import matplotlib
 from joblib import load
-from data_helpers import (
-    fl_inputs,
-    fl_vecs,
-    convertvec_etaphipt,
-    gettraindata,
-    make_lossplot,
-    make_histoweight,
-    make_metplots
-)
+from data_helpers import fl_inputs, fl_vecs, convertvec_etaphipt, gettraindata, make_lossplot, make_histoweight, make_metplots
 from distillnet_setup import (
     makedataloaders,
     nn_setup,
@@ -31,7 +23,7 @@ matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
 
-def resolution(arr, gen): 
+def resolution(arr, gen):
     q_75_abc = np.quantile(genfunc(arr, gen), 0.75)
     q_25_abc = np.quantile(genfunc(arr, gen), 0.25)
     resolutions = (q_75_abc - q_25_abc) / 2
@@ -112,7 +104,7 @@ def get_mets(
         default_vec_reshaped = default_vec.reshape(4, -1).T
 
         if is_remove_padding:
-           # print("Removing padded particles.....")
+            # print("Removing padded particles.....")
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
             gen_padmask = np.abs(gen_vec_reshaped[:, 0]) > 0.000001
             (
@@ -160,9 +152,7 @@ def get_mets(
         batch_size = len(features_np[:, 2])
 
         dataset_test = FeatureDataset(nn_input)
-        test_loader = data.DataLoader(
-            dataset=dataset_test, shuffle=False, batch_size=batch_size
-        )
+        test_loader = data.DataLoader(dataset=dataset_test, shuffle=False, batch_size=batch_size)
         predictions = modelpredictions(met_model, test_loader, batch_size, device)
 
         met_distillnet = Metcalc(default_vec_np, predictions)
@@ -173,39 +163,57 @@ def get_mets(
         return predictions, abcw_np, puppiw_np, met_distillnet, met_abc, met_puppi, met_gen
 
 
-
 def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False):
     plt.figure(figsize=(8, 7))
     binsspace = np.arange(-1, 3.1, 0.1)
     ranges = (-1, 3)
-    bins_calc, xb, _ = plt.hist(np.clip(genfunc(met_a, met_g), binsspace[0], binsspace[-1]), bins=binsspace, histtype='step',label=r'$E_\mathrm{T}^{\mathrm{miss}}$'+
-                                f' ABCNet\nResolution: {resolution(met_a,met_g):.4f}', range=ranges, lw=3)
-    bins_puppi, _, _ = plt.hist(np.clip(genfunc(met_p, met_g), binsspace[0], binsspace[-1]), bins=binsspace, histtype='step', label=r'$E_\mathrm{T}^{\mathrm{miss}}$'+
-                                f' Puppi\nResolution: {resolution(met_p,met_g):.4f}', range=ranges, lw=3)
-    bins_puppi, _, _ = plt.hist(np.clip(genfunc(met_d, met_g), binsspace[0], binsspace[-1]), bins=binsspace, histtype='step', label=r'$E_\mathrm{T}^{\mathrm{miss}}$'+
-                                f' DistillNet\nResolution: {resolution(met_d,met_g):.4f}', range=ranges, lw=3)
+    bins_calc, xb, _ = plt.hist(
+        np.clip(genfunc(met_a, met_g), binsspace[0], binsspace[-1]),
+        bins=binsspace,
+        histtype="step",
+        label=r"$E_\mathrm{T}^{\mathrm{miss}}$" + f" ABCNet\nResolution: {resolution(met_a,met_g):.4f}",
+        range=ranges,
+        lw=3,
+    )
+    bins_puppi, _, _ = plt.hist(
+        np.clip(genfunc(met_p, met_g), binsspace[0], binsspace[-1]),
+        bins=binsspace,
+        histtype="step",
+        label=r"$E_\mathrm{T}^{\mathrm{miss}}$" + f" Puppi\nResolution: {resolution(met_p,met_g):.4f}",
+        range=ranges,
+        lw=3,
+    )
+    bins_puppi, _, _ = plt.hist(
+        np.clip(genfunc(met_d, met_g), binsspace[0], binsspace[-1]),
+        bins=binsspace,
+        histtype="step",
+        label=r"$E_\mathrm{T}^{\mathrm{miss}}$" + f" DistillNet\nResolution: {resolution(met_d,met_g):.4f}",
+        range=ranges,
+        lw=3,
+    )
 
-    plt.legend(fancybox=True, framealpha=0.8, loc='best',prop={'size': 18})
+    plt.legend(fancybox=True, framealpha=0.8, loc="best", prop={"size": 18})
 
     plt.xlabel(r"$(E_\mathrm{T}^{\mathrm{miss}}-E_\mathrm{T}^{\mathrm{miss,\,gen}})\;/\;E_\mathrm{T}^{\mathrm{miss,\,gen}}$")
 
     plt.minorticks_on()
 
-    plt.ylabel(r'$N_\mathrm{Events}\;/\;0.1$')
-
+    plt.ylabel(r"$N_\mathrm{Events}\;/\;0.1$")
 
     _xlim, _ylim = plt.gca().get_xlim(), plt.gca().get_ylim()
     plt.xlim(ranges)
     plt.ylim(*_ylim)
 
-    plt.savefig(plotdir + "response_smaller" + saveinfo + '__time_' + timestr + '.png', dpi=500, bbox_inches='tight')
+    plt.savefig(plotdir + "response_smaller" + saveinfo + "__time_" + timestr + ".png", dpi=500, bbox_inches="tight")
     if is_displayplots:
         plt.show()
     else:
         plt.clf()
 
+
 def main():
-    print('Hello, you seem to be running the wrong script')
+    print("Hello, you seem to be running the wrong script")
+
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,5 @@
 from jetclustering_helpers import JetEvent, resolution, make_jetenergyplot, make_jetresolutionplots, corinputs
+from data_helpers import join_and_makedir
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
@@ -6,7 +7,7 @@ import os
 import pandas as pd
 from train_distillnet import filedir, w_sample, flist_inputs, zprime_sample, savedir
 from distillnet_setup import load_bestmodel
-from distillnet_config import hparams
+from distillnet_config import hparams, trainparams
 from tqdm import tqdm
 import matplotlib
 import time
@@ -14,25 +15,16 @@ timestr = time.strftime("%Y%m%d-%H%M%S")
 matplotlib.rc("font", size=20, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
-
-results_dir = os.path.join(savedir, "Jetclustering/")
-if not os.path.isdir(results_dir):
-    os.makedirs(results_dir)
-plotdir = os.path.join(savedir, 'Plots/Jetclustering/')
-if not os.path.isdir(plotdir):
-    os.makedirs(plotdir)
-plotdir_pdf = os.path.join(plotdir, 'pdf/')
-if not os.path.isdir(plotdir_pdf):
-    os.makedirs(plotdir_pdf)
-
-modelsavedir = os.path.join(savedir, 'Models_v3/')
-#modelsavedir = os.path.join(savedir, 'Models_Ensemble/')
+results_dir = join_and_makedir(savedir, "Jetclustering/")
+plotdir = join_and_makedir(savedir, 'Plots/Jetclustering/')
+plotdir_pdf = join_and_makedir(plotdir, 'pdf/')
+modelsavedir = os.path.join(savedir, 'Models/')
 
 niceValue = os.nice(18)
 device = 'cpu'
 dR = 0.4
 ptcut = 10
-sample = w_sample
+sample = trainparams['test_sample']
 
 is_savefig = True
 is_displayplots = True
@@ -47,7 +39,6 @@ l1_hsize = hparams["L1_hsize"]
 l2_hsize = hparams["L2_hsize"]
 n_outputs = hparams["n_outputs"]
 saveinfo = '_trainpart_2.20E+07__Batchs_768__numep_44_7_3_bndrop005_werr3_std'
-#saveinfo = '_tpart_1.40E+07__Batchs_256__numep_48_7_3_bndrop005_werr3__ensemble9__devicecuda:0__numtests10_std'
 model = load_bestmodel(
     saveinfo,
     savedir,

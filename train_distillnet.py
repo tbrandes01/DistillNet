@@ -48,7 +48,6 @@ is_standard_scaler = bool_val['is_standard_scaler']
 is_dtrans = bool_val['is_dtrans']
 is_do_taylor = bool_val['is_do_taylor']
 is_weighted_error = bool_val['is_weighted_error']
-is_trial = bool_val['is_trial']
 if is_min_max_scaler:
     saveinfo += "_minmaxscaler"
 if is_standard_scaler:
@@ -62,7 +61,7 @@ def main():
     model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval = nn_setup(nn_inputdata, device, hparams['batch_size'],
                                                                                                         hparams['maketrain_particles'], hparams['L1_hsize'],
                                                                                                         hparams['L2_hsize'], hparams['n_outputs'],
-                                                                                                        is_trial=is_trial)
+                                                                                                        )
     print('Model hyperparams ', hparams)
     print('Model trainparams ', trainparams)
     print("Model's state_dict:")
@@ -75,7 +74,7 @@ def main():
 
     make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
     met_model = load_bestmodel(saveinfo, savedir, modelsavedir, 'bestmodel_trainloss', device, input_size, hparams['L1_hsize'], hparams['L2_hsize'],
-                                hparams['n_outputs'], is_trial=is_trial)
+                                hparams['n_outputs'])
 
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
     maxevent = int(nn_inputdata[3])

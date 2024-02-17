@@ -1072,9 +1072,7 @@ def derive_corrections(
     upper_bound: int,
     jetenergy_algorithm: list,
     jetenergy_gen: list,
-    is_histcalc: bool = False,
-    is_histoplots: bool = True,
-):
+    ):
     print(f"Selection between{lower_bound} and {upper_bound}GeV")
 
     selected_jet_energy_algo, mask = apply_mask_bounds(lower_bound, upper_bound, jetenergy_algorithm)
@@ -1103,8 +1101,7 @@ def apply_jetcorrections(corrections_intervals: list, matched_algo, gen_matched_
         if is_prints:
             print(matched_algo)
     response_corrected = calcresponse(matched_algo, gen_matched_algo)
-    return matched_algo, response_corrected  # then do response plot with matched_gen and matched_algo and see what happens
-
+    return matched_algo, response_corrected 
 
 def apply_jetcorrections_pt(
     corrections_intervals: list,
@@ -1121,16 +1118,14 @@ def apply_jetcorrections_pt(
             print(matched_algo)
         matched_algo = np.where(
             (matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound), matched_algo / ratio, matched_algo
-        )  # calc energy corrections
-        #   matched_pt_algo = np.where((matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound), matched_pt_algo / ratio, matched_pt_algo) #calc pt corrections
+        )  
         if is_prints:
             print(matched_algo)
     response_corrected = calcresponse(matched_algo, gen_matched_algo)
     return (
         matched_algo,
         response_corrected,
-    )  # , matched_pt_algo   # then do response plot with matched_gen and matched_algo and see what happens
-
+    ) 
 
 def apply_mask_bounds(lower_bound, upper_bound, jetenergies):
     mask1 = np.abs(lower_bound) <= jetenergies
