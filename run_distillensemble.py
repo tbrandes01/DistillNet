@@ -1,26 +1,19 @@
 import torch
 from tqdm import tqdm
 import numpy as np
-from train_distillnet_ens import maketraining_distill
+from train_distillnet_ens_v2 import maketraining_distill
 from tap import Tap
 import os
-from distillnet_config import hparams, trainparams
+from distillnet_config import hparams, trainparams, dirs
 
 
 class Argparser(Tap):
     cuda: int
+    savedir: str
     numtests: int
     wmin: int
     wmax: int
     step: float
-
-
-def makedirs():
-    script_dir = os.path.dirname(__file__)
-    results_dir = os.path.join(script_dir, "resolutions/")
-    if not os.path.isdir(results_dir):
-        os.makedirs(results_dir)
-    return script_dir, results_dir
 
 
 def getresolutions(device, args):
@@ -29,30 +22,26 @@ def getresolutions(device, args):
     for wgt in wlist:
         resolutions = []
         for i in tqdm(range(args.numtests)):
-
-            res = maketraining_distill(device, i, args.numtests, wgt)
-
+            res = maketraining_distill(dirs['filedir'], args.savedir, device, i, args.numtests, wgt, is_ensembletest=True)
             resolutions.append(res)
             print(f"resolution at model{i}: {res}")
         resolutions_all.append(resolutions)
     return resolutions
 
 
-def makeprints(array, results_dir, args):
-    strinfo = f"resolutions_fromdevice{args.cuda}_numtests{args.numtests}__tpart_{hparams['maketrain_particles']:.2E}__Batchs_{hparams['batch_size']}__numep_{trainparams['n_epochs']}_7_3_bndrop005_werr3"
-    print("Results for distillation ensemble")
-    np.savetxt(results_dir + strinfo + "csv", array, delimiter=";")
-
-    print(array)
-    print(f"best resolution at model number: {np.argmin(array)} with {array[np.argmin(array)]}")
-    print("mean resolution:", np.mean(array))
-    print(f"max resolution at model number: {np.argmax(array)} with {array[np.argmax(array)]}")
+def makeprints(array, args):
+    print("Results for DistillNet ensemble")
+    for wgtlist, idx in enumerate(array):
+        wlist = np.arange(args.wmin, args.wmax, args.step)
+        print('Weight used in Loss: ', wlist[idx])
+        print('Achieved Resolution:' , wgtlist)
+        print(f"best resolution at model number: {np.argmin(wgtlist)} with {wgtlist[np.argmin(wgtlist)]}")
+        print("mean resolution:", np.mean(wgtlist))
+        print(f"max resolution at model number: {np.argmax(wgtlist)} with {wgtlist[np.argmax(wgtlist)]}")
 
 
 def main():
-    script_dir, results_dir = makedirs()
     args = Argparser().parse_args()
-
     device = f"cuda:{args.cuda}" if torch.cuda.is_available() else "cpu"
     print(device)
     resolutions = getresolutions(device, args)

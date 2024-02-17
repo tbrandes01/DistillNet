@@ -12,9 +12,16 @@ trainparams = {
             "patience": 5,
             "best_loss": 0.17,
             'weightedlossval': 3,
-            "train_sample": "distill_wjets_swd", #sample for training
-            "test_sample": "distill_ttbar_swd",  #sample for testing
+            "train_sample": "distill_wjets_emd_prl", #sample for training distill_wjets_swd
+            "test_sample": "distill_ttbar_emd_prl",  #sample for testing distill_ttbar_swd
             }
+
+
+dirs = {
+        'filedir': '/work/tbrandes/work/data/',
+        'savedir': '/work/tbrandes/delme/'
+    
+}
 
 bool_val = {
             "Is_displayplots": False,
@@ -25,5 +32,4 @@ bool_val = {
             "Is_dtrans": False,
             "Is_do_taylor": True,
             "Is_weighted_error": True,
-            "Is_trial": True
             }
