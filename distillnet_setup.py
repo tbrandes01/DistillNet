@@ -46,6 +46,10 @@ class WeightedMAE(nn.L1Loss):
 
 
 class FeatureDataset(Dataset):  # create Dataset object for Dataloader to iterate over
+    """
+    DistillNet pytorch training dataset for later dataloader instance. Contains DistillNet per-particle features as
+    input vector as well as the GNN's per-particle soft targets as truth vector.
+    """
     def __init__(self, data, transform=None, target_transform=None):
         # define traindata and truth labels
         alldata, labelNN = data[0], data[1]
@@ -68,6 +72,9 @@ class FeatureDataset(Dataset):  # create Dataset object for Dataloader to iterat
 
 
 class DistillNet(nn.Module):
+    """
+    Pytorch DistillNet Neural Network class instance.
+    """
     def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
         super(DistillNet, self).__init__()
         self.input_size = input_size
@@ -93,14 +100,20 @@ class DistillNet(nn.Module):
 
 def load_bestmodel(saveinfo: str, modelsavedir: str, modelname: str, device: str,
                 input_size: int, hidden_size_l1: int, hidden_size_l2: int, num_classes: int):
+    """
+    Load best model from saved models directory, either best training or best validation loss.
+    """
     model = DistillNet(input_size, hidden_size_l1, hidden_size_l2, num_classes)
     model.load_state_dict(torch.load(modelsavedir + modelname + saveinfo + '.pth', map_location=device), strict=True)
     model.to(device)
     return model
 
 
-def nn_setup(data, device:str, batch_size: int, maketrain_particles: int, l1_hsize: int, l2_hsize: int, n_outputs: int):
-    train_loader, test_loader, input_size, test = makedataloaders(data, batch_size, maketrain_particles)
+def nn_setup(data, device:str, batch_size: int, maketrain_particles: int, trainsplit: float, l1_hsize: int, l2_hsize: int, n_outputs: int):
+    """
+    Setup Distillnet for training, initalize dataloaders, model, loss and optimizer.
+    """
+    train_loader, test_loader, input_size, test = makedataloaders(data, trainsplit, batch_size, maketrain_particles)
     model = DistillNet(input_size, l1_hsize, l2_hsize, n_outputs) 
     model.to(device)
     criterion = nn.L1Loss() #placeholder criterion for later modified weighted MAE Loss
@@ -114,6 +127,9 @@ def nn_setup(data, device:str, batch_size: int, maketrain_particles: int, l1_hsi
 
 
 def calc_datasetweights(truth, is_makeprints: bool = False):
+    """
+    Calculate weights for class imbalance.
+    """
     count_between_0_and_0_05 = np.sum((truth >= 0) & (truth <= 0.05))
     count_between_0_95_and_1 = np.sum((truth >= 0.95) & (truth <= 1))
     total = count_between_0_and_0_05 + count_between_0_95_and_1
@@ -126,12 +142,16 @@ def calc_datasetweights(truth, is_makeprints: bool = False):
     return weights_highval
 
 
-def makedataloaders(dat: tuple, batch_size: int, num_particles: int):
+def makedataloaders(dat: tuple, trainsplit: float, batch_size: int, num_particles: int):
+    """
+    Create pytorch dataloaders based on training and testing split.
+    """
     Particles, nfeatures = len(dat[0]), len(dat[0][0])
     num_particles = int(num_particles)
+    validsplit = (1-trainsplit)
     # slice Dataset into train and validation, train containing 80% of the data
-    numtrain = int(num_particles * 0.75)
-    numvalid = int(num_particles * 0.25)  # Validation containing 20%
+    numtrain = int(num_particles * trainsplit)
+    numvalid = int(num_particles * validsplit)  # Validation containing 20%
     test = (
         dat[0][numtrain: num_particles],
         dat[1][numtrain: num_particles],
@@ -159,6 +179,9 @@ def makedataloaders(dat: tuple, batch_size: int, num_particles: int):
 
 
 def validation(model, device, valid_loader, loss_function, weights_highval, is_weighted_error: bool = False):
+    """
+    Calculate validation loss per epoch for model.
+    """
     model.eval()
     loss_total = 0
     with torch.no_grad():
@@ -181,6 +204,10 @@ def validation(model, device, valid_loader, loss_function, weights_highval, is_w
 
 def do_training(model, criterion, optimizer, device: str, train_loader, test_loader, test, savedir: str, modelsavedir: str, saveinfo: str,
                 weights_highval: float, num_epochs: int, is_earlystopping: bool = True, is_dotaylor: bool = False, is_weighted_error: bool = False):
+    """
+    DistillNet training loop. If is weighted error is true, utilizes Weighted MAE as loss. 
+    Early stopping after validation loss does not decrease for "patience" (trainparameter) epochs.
+    """
     num_epochs = int(num_epochs)
     examples = iter(train_loader)  #test if dataloader produces desired output
     samples = next(examples)
@@ -299,6 +326,9 @@ def do_training(model, criterion, optimizer, device: str, train_loader, test_loa
 
 
 def modelpredictions(model, dataloader, batch_size: int, device: str):
+    """
+    Make DistillNet weight predictions for input dataloader.
+    """
     model.to(device)
     model.eval()
     with torch.no_grad():

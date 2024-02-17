@@ -14,6 +14,9 @@ matplotlib.rcParams["text.usetex"] = True
 
 
 def resolution(arr, gen):
+    """
+    Calculate resolution of physical quantity as difference between the 75th and 25th quantile / 2
+    """
     q_75_abc = np.quantile(genfunc(arr, gen), 0.75)
     q_25_abc = np.quantile(genfunc(arr, gen), 0.25)
     resolutions = (q_75_abc - q_25_abc) / 2
@@ -21,35 +24,55 @@ def resolution(arr, gen):
 
 
 def genfunc(arr, gen):
+    """
+    Calculate response function as (reconstructed - generated) / generated 
+    """
     return (np.array(arr) - np.array(gen)) / np.array(gen)
 
 
-def makevec(pt, phi):  # create a vector using polar coordinates
+def makevec(pt, phi):  
+    """
+    Create a vector using polar coordinates
+    """
     x = pt * np.cos(phi)
     y = pt * np.sin(phi)
     return x, y
 
 
-def makevec_vers2(pt, phi):  # create a vector using polar coordinates
+def makevec_vers2(pt, phi):  
+    """
+    Create a vector using polar coordinates, different syntax
+    """
     x = pt * np.cos(phi)
     y = pt * np.sin(phi)
     return np.array([x, y])
 
 
-def mag(vec):  # get magnitude of vector
+def mag(vec):
+    """
+    Get magnitude of vector
+    """
     return np.sqrt((np.sum(vec[0]) ** 2) + (np.sum(vec[1]) ** 2))
 
 
-def Metcalc(lvec, weights):
-    pt = lvec[:, 2]
+def Metcalc(vec, weights):
+    """
+    Calculate Missing Transverse Energy based on pt and phi quantities.\n
+    In Addition, the pt vector is scaled according to the per-particle weight of the respective algorithm
+    """
+    pt = vec[:, 2]
     pt_scaled = weights * pt
-    ptvec = makevec(pt_scaled, lvec[:, 1])
+    ptvec = makevec(pt_scaled, vec[:, 1])
     ET_missvec = [np.sum(ptvec[0]), np.sum(ptvec[1])]
     ET_magnitude = mag(ET_missvec)
     return ET_magnitude
 
 
 def Metcalc_gen(lvec):
+    """
+    Calculate Missing Transverse Energy based on pt and phi quantities.\n
+    No weight rescaling needed as this is on the generator level.
+    """
     pt_scaled = lvec[:, 2]
     ptvec = makevec(pt_scaled, lvec[:, 1])
     ET_missvec = [np.sum(ptvec[0]), np.sum(ptvec[1])]
@@ -72,6 +95,12 @@ def get_mets(
     is_dtrans: bool = False,
     is_makeprints: bool = False,
 ):
+    """
+    Calculate MET for an event from given sample for the GNN, Puppi and DistillNet.\n
+    The number of particles per event varies as zero-padded particles are removed by default.
+    Dtrans refers to clipping the d0 and dZ input variable to the range between -1 and 1 to 
+    potentially aid the scaler in scaling the inputs more efficiently with the missing d0 and dZ outliers.\n
+    """
     filename = os.path.join(filedir, sample)
     veclist = [0, 1, 2, 3]
 
@@ -150,6 +179,10 @@ def get_mets(
 
 
 def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata: tuple, flist_inputs: list, met_model, device: str, is_remove_padding: bool, is_min_max_scaler: bool, is_standard_scaler: bool, is_dtrans: bool):
+    """
+    Loop over all events in test dataset to calculate the per-event MET for GNN, Puppi and DistillNet.\n
+    Returned are the METs, per-particle pt-rescaling weights and resulting MET resolutions of the three respective algorithms.
+    """
     
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
     maxevent = int(nn_inputdata[3])
@@ -172,6 +205,9 @@ def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata:
 
 
 def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False):
+    """
+    Create MET resolution plots for GNN, Puppi and DistillNet
+    """
     plt.figure(figsize=(8, 7))
     binsspace = np.arange(-1, 3.1, 0.1)
     ranges = (-1, 3)

@@ -7,15 +7,22 @@ from distillnet_config import dirs
 
 
 class Argparser(Tap):
-    cuda: int
-    savedir: str
-    numtests: int
-    wmin: int
-    wmax: int
-    step: float
+    """
+    Arguments: Specifiy cuda number for which gpu you wish to use, specify savedir for directory to save ensembles in, numtests for the number of trainings to be executed,
+    wmin as minimum weighted loss multiplicity value, wmax as maximum weighted loss multiplicity value, step for the number of steps between wmin and wmax,
+    """
+    cuda: int = 0
+    savedir: str = "./Ensembletest"
+    numtests: int = 5
+    wmin: int = 2
+    wmax: int = 4
+    step: float = 6
 
 
 def getresolutions(device, args):
+    """
+    Runs ensemble test based on input args and return list of DistillNet MET resolutions. 
+    """
     resolutions_all = []
     wlist = np.arange(args.wmin, args.wmax, args.step)
     for wgt in wlist:

@@ -1,6 +1,7 @@
 hparams = {
     "batch_size": 256,  # Batch size
     "maketrain_particles": 1.4e6,  # Particles utlized for training
+    'train_split': 0.75, #training-validation data split; train split is percentage used for training
     "L1_hsize": 128,  # Size Hidden Layer 1
     "L2_hsize": 64,  # Size Hidden Layer 2
     "n_outputs": 1,  # Number of output classes

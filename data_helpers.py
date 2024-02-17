@@ -15,6 +15,9 @@ matplotlib.rcParams["text.usetex"] = True
 
 
 class fl_inputs(Enum):  # features of data
+    """
+    This class contains the input parameters of DistillNet with px,py and pz 4-vectors.
+    """
     px = 0
     py = 1
     pz = 2
@@ -35,6 +38,9 @@ class fl_inputs(Enum):  # features of data
 
 
 class fl_inputs_eta(Enum):  # features of data
+    """
+    This class contains the input parameters of DistillNet with eta, phi and pt 4-vectors.
+    """
     eta = 0
     phi = 1
     pt = 2
@@ -62,6 +68,9 @@ class fl_vecs(Enum):
 
 
 def makelog(arr):
+    """
+    Helper function to get logarithm of array while avoiding taking the log of 0.
+    """
     arr[np.where(arr == 0)] = 1
     return np.log(arr)
 
@@ -71,6 +80,9 @@ def calcresponse(arr, genarr):
 
 
 def join_and_makedir(parent_path: str, Folder: str):
+    """
+    Join directory strings and make new directory if it doesn't exist yet.
+    """
     new_dir = os.path.join(parent_path, Folder)
     if not os.path.isdir(new_dir):
         os.makedirs(new_dir)
@@ -80,6 +92,9 @@ def join_and_makedir(parent_path: str, Folder: str):
 def make_finalprints(
     resolution_model: float, binratio: float, resolution_abc: float, resolution_puppi: float, saveinfo: str, flist_names: list, flist_inputs: list
 ):
+    """
+    Create final information output prints after traing and physics validation is complete.
+    """
     print("Resolution DistillNet", resolution_model)
     print(f"last bin (between 0.95 and 1) ratio: {binratio:.3f}")
     print("Resolution AbcNet", resolution_abc)
@@ -91,6 +106,9 @@ def make_finalprints(
 
 
 def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = False):
+    """
+    convert vector from px, py and pz to eta, phi and pt.
+    """
     vec_input = vector.array({"px": p_vec[:, 0], "py": p_vec[:, 1], "pz": p_vec[:, 2], "energy": p_vec[:, 3]})
     p_vec[:, 0], p_vec[:, 1], p_vec[:, 2] = vec_input.eta, vec_input.phi, vec_input.pt
     if is_log:
@@ -101,18 +119,6 @@ def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = F
             p_vec[:, 2], p_vec[:, 3] = makelog(p_vec[:, 2]), makelog(p_vec[:, 3])
             return
     return
-
-
-def makeratio(val_of_bins_x1, val_of_bins_x2):
-
-    ratio = np.divide(val_of_bins_x1, val_of_bins_x2, where=(val_of_bins_x2 != 0))
-
-    error = np.divide(
-        val_of_bins_x1 * np.sqrt(val_of_bins_x2) + val_of_bins_x2 * np.sqrt(val_of_bins_x1),
-        np.power(val_of_bins_x2, 2),
-        where=(val_of_bins_x2 != 0),
-    )
-    return ratio, error
 
 
 def gettraindata(
@@ -129,7 +135,10 @@ def gettraindata(
     is_makeplots: bool = False,
     is_makeprints: bool = True,
 ):
-
+    """
+    Get training data for DistillNet from sample .h5 file. Data is reshaped and then transformed by 
+    desired scaler, which is then saved for later validation purpose.
+    """
     filename = os.path.join(filedir, sample)
     filename_test = os.path.join(filedir, sample_test)
     with h5py.File(filename_test, "r") as f:
@@ -228,7 +237,10 @@ def getdata_deposits(
     is_dtrans: bool = False,
     is_makeprints: bool = True,
 ):
-
+    """
+    Data fetching script for creating the energy deposit plots. Data fetching is slightly different as it is possible, as opposed
+    to the MET calculation to do this on the whole dataset at once rather than on a per-event basis.
+    """
     filename = os.path.join(filedir, sample)
     print(f"Accessing {filename} for testing DistillNet energy deposits")
     min_event = int(min_event)
@@ -329,6 +341,9 @@ def make_lossplot(
     is_savefig: bool = False,
     is_displayplots: bool = False,
 ):
+    """
+    Create lossplot from training loop.
+    """
     plt.figure(figsize=(8, 7))
     # plot loss over epochs
     plt.plot(np.arange(0, len(losslist)), losslist, color="b", label="Train loss", zorder=1)
@@ -353,6 +368,9 @@ def make_lossplot(
 
 
 def do_weightpred(test_loader, model, device):
+    """
+    Calculate DistillNet weight predictions for a given model and input dataloader.
+    """
     with torch.no_grad():
         weight_prediction = []
         for i, (features, labels) in enumerate(test_loader):
@@ -366,52 +384,6 @@ def do_weightpred(test_loader, model, device):
 
         weight_prediction = np.concatenate(weight_prediction)
     return weight_prediction
-
-
-def make_histoweight(
-    test: list,
-    test_loader,
-    model,
-    device: str,
-    plotdir: str,
-    plotdir_pdf: str,
-    saveinfo: str,
-    timestr: str,
-    is_savefig: bool = False,
-    is_displayplots: bool = False,
-):
-    truth = test[1]
-    truth = np.concatenate(truth)
-    weight_prediction = do_weightpred(test_loader, model, device)
-
-    plt.figure(figsize=(10, 7))
-
-    bins, xb, xr = plt.hist(truth, bins=20, range=(0, 1), label="ABC Net truth weights", histtype="step", lw=1.5)
-    bins_distil, _, _ = plt.hist(weight_prediction, bins=20, range=(0, 1), label="predicted weights", histtype="step", lw=1.5)
-
-    plt.yscale("log")
-    _xlim, _ylim = plt.gca().get_xlim(), plt.gca().get_ylim()
-    plt.xlim(*_xlim)
-    plt.ylim(*_ylim)
-    ratiolast = bins_distil[-1] / bins[-1]
-    ratiofirst = bins_distil[0] / bins[0]
-    plt.plot([], [], " ", label=f"first bin (between 0 and 0.05) ratio: {ratiofirst*100:.2f} percent")
-    plt.plot([], [], " ", label=f"last bin (between 0.95 and 1) ratio: {ratiolast*100:.2f} percent")
-
-    plt.vlines(xb, ymin=0, ymax=_ylim[1], color="black", alpha=0.1)
-    plt.legend(prop={"size": 15}, fancybox=True, framealpha=0.8, loc="upper center")
-    plt.xlabel("Weight")
-    plt.ylabel("Number of particles")
-    sample_file_name1 = "wgts"
-    if is_savefig:
-        plt.savefig(plotdir + sample_file_name1 + saveinfo + "__time_" + timestr + ".png", dpi=400, bbox_inches="tight")
-        plt.savefig(plotdir_pdf + sample_file_name1 + saveinfo + "__time_" + timestr + ".pdf", bbox_inches="tight")
-    if is_displayplots:
-        plt.show()
-    else:
-        plt.clf()
-    plt.close()
-    return ratiolast
 
 
 def make_metplots(
@@ -428,7 +400,9 @@ def make_metplots(
     is_savefig: bool = True,
     is_displayplots: bool = False,
 ):
-
+    """
+    Create MET plots for GNN, Puppi and Distillnet.
+    """
     figure, ax = plt.subplots(2, 1, figsize=(8, 7), gridspec_kw={"height_ratios": [0.8, 0.2]})
     binsspace = np.arange(0, 160, 8)
     bins_abc, xb, _ = ax[0].hist(
@@ -524,7 +498,7 @@ def make_metplots(
     return
 
 
-def make_histoweight_mod(
+def make_weight_histogram(
     predictions,
     truth,
     puppiw,
@@ -539,6 +513,9 @@ def make_histoweight_mod(
     is_savefig: bool = True,
     is_displayplots: bool = False,
 ):
+    """
+    Create overall weight distribution plot for GNN, Puppi and DistillNet.
+    """
     predictions = np.concatenate(predictions)
     truth = np.concatenate(truth)
     puppiw = np.concatenate(puppiw)
@@ -612,6 +589,9 @@ def make_histoweight_mod(
 
 
 def corinputs(dataframe, index):
+    """
+    Helper function to handle NaN entries from Pd dataframe
+    """
     npdf = dataframe.to_numpy()
     npdf = np.delete(npdf[index], 0)
     npdf = npdf[~pd.isnull(npdf)]
@@ -619,7 +599,11 @@ def corinputs(dataframe, index):
 
 
 def makeratio(val_of_bins_x1, val_of_bins_x2):
+    """
+    Get ratio of 2 bins as well as associated poisson error.
+    """
     ratio = np.divide(val_of_bins_x1, val_of_bins_x2, where=(val_of_bins_x2 != 0))
+
     error = np.divide(
         val_of_bins_x1 * np.sqrt(val_of_bins_x2) + val_of_bins_x2 * np.sqrt(val_of_bins_x1),
         np.power(val_of_bins_x2, 2),
@@ -628,7 +612,11 @@ def makeratio(val_of_bins_x1, val_of_bins_x2):
     return ratio, error
 
 
+
 def resolution_response(arr):
+    """
+    Calculate resolution of physical quantity as difference between the 75th and 25th quantile / 2
+    """
     q_75_abc = np.quantile(arr, 0.75)
     q_25_abc = np.quantile(arr, 0.25)
     resolutions = (q_75_abc - q_25_abc) / 2
@@ -646,6 +634,9 @@ def plot_jetresolution(
     is_corr: bool = False,
     is_ptcorr: bool = False,
 ):
+    """
+    Plot reconstruced jet resolution for GNN, Puppi and DistillNet.
+    """
     print("responseabcres: ", resolution_response(responseabc))
     print("Distiljetres:", resolution_response(responsedistil))
     print("puppijetres:", resolution_response(responsepuppi))
@@ -724,6 +715,9 @@ def plot_jetresolution(
 def plot_jetenergy(
     abcjetE, puppijetE, distiljetE, genjetE, results_dir: str, results_dir_pdf: str, ptcut: int, is_savefig: bool = True
 ):
+    """
+    Plot jet energy for GNN, Puppi and DistillNet
+    """
     figure = plt.figure(figsize=(16, 8))
 
     binsspace = 50
@@ -770,7 +764,9 @@ def plot_jetratio(
     is_corr: bool = False,
     is_ptcorr: bool = False,
 ):
-
+    """
+    Plot jet energy and resulting ratio for GNN, Puppi and DistillNet.
+    """
     figure, ax = plt.subplots(2, 1, figsize=(8, 7), gridspec_kw={"height_ratios": [0.8, 0.2]})
     binsspace = 25
     xmaxbin = 400
@@ -871,6 +867,9 @@ def make_depositplots(
     is_savefig: bool = True,
     is_abc_puppisave: bool = False,
 ):
+    """
+    Create plots for energy deposits of GNN, Puppi and Distillnet.
+    """
     pts = pu_dat[:, 2][nstart:nparticles]
     etas = pu_dat[:, 0][nstart:nparticles]
     phis = pu_dat[:, 1][nstart:nparticles]
@@ -1085,6 +1084,9 @@ def derive_corrections(
     jetenergy_algorithm: list,
     jetenergy_gen: list,
 ):
+    """
+    Derive jet energy corrections for selected intervals.
+    """
     print(f"Selection between{lower_bound} and {upper_bound}GeV")
 
     selected_jet_energy_algo, mask = apply_mask_bounds(lower_bound, upper_bound, jetenergy_algorithm)
@@ -1094,6 +1096,9 @@ def derive_corrections(
 
 
 def derive_corrections_pt(lower_bound: int, upper_bound: int, jetpt_algo: list, jetpt_gen: list):
+    """
+    Derive jet pt corrections for selected pt intervals.
+    """
     print(f"Pt selection between{lower_bound} and {upper_bound}GeV")
     selected_jet_pt_algo, mask = apply_mask_bounds(lower_bound, upper_bound, jetpt_algo)
     selected_jet_pt_gen = jetpt_gen[mask]
@@ -1102,6 +1107,9 @@ def derive_corrections_pt(lower_bound: int, upper_bound: int, jetpt_algo: list, 
 
 
 def apply_jetcorrections(corrections_intervals: list, matched_algo, gen_matched_algo, is_prints: bool = False):
+    """
+    Apply derived jet energy corrections for intervals.
+    """
     matched_algo_copy = matched_algo
     for lower_bound, upper_bound in corrections_intervals:
         ratio = derive_corrections(lower_bound, upper_bound, matched_algo, gen_matched_algo, is_histoplots=False)
@@ -1124,6 +1132,9 @@ def apply_jetcorrections_pt(
     gen_matched_algo: list,
     is_prints: bool = False,
 ):
+    """
+    Apply jet pt corrections to jet pt intervals.
+    """
     matched_pt_algo_copy = matched_pt_algo
     for lower_bound, upper_bound in corrections_intervals:
         ratio = derive_corrections_pt(lower_bound, upper_bound, matched_pt_algo, matched_pt_gen)
@@ -1142,6 +1153,9 @@ def apply_jetcorrections_pt(
 
 
 def apply_mask_bounds(lower_bound, upper_bound, jetenergies):
+    """
+    Select jets that are within lower and upper bound.
+    """
     mask1 = np.abs(lower_bound) <= jetenergies
     mask2 = jetenergies <= np.abs(upper_bound)
     combmask = np.logical_and(mask1, mask2)
@@ -1150,6 +1164,9 @@ def apply_mask_bounds(lower_bound, upper_bound, jetenergies):
 
 def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savefig: bool = True, is_prints: bool = False):
 
+    """
+    Create jet energy and pt plots for GNN, Puppi and DistillNet.
+    """
     print(df_jetdata_abc_puppi)
     abcjetE = corinputs(df_jetdata_abc_puppi, 0)
     puppijetE = corinputs(df_jetdata_abc_puppi, 1)
