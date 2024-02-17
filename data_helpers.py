@@ -17,9 +17,9 @@ matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
 
-class fl_inputs(Enum):  # features of data
+class fl_inputs(Enum):
     """
-    This class contains the input parameters of DistillNet with px,py and pz 4-vectors.
+    Enumeration of features of data represented by px, py, and pz 4-vectors.
     """
     px = 0
     py = 1
@@ -37,12 +37,11 @@ class fl_inputs(Enum):  # features of data
     pid_6 = 13
     pid_7 = 14
     pid_8 = 15
-    # puppiw_2 = 16
 
 
-class fl_inputs_eta(Enum):  # features of data
+class fl_inputs_eta(Enum):
     """
-    This class contains the input parameters of DistillNet with eta, phi and pt 4-vectors.
+    Enumeration of features of data represented by eta, phi, and pt 4-vectors.
     """
     eta = 0
     phi = 1
@@ -63,6 +62,9 @@ class fl_inputs_eta(Enum):  # features of data
 
 
 class fl_vecs(Enum):
+    """
+    Enumeration of vector components.
+    """
     px = 0
     py = 1
     pz = 2
@@ -79,12 +81,15 @@ def makelog(arr):
 
 
 def calcresponse(arr, genarr):
+    """
+    Calculate response of an array.
+    """
     return (np.array(arr) - np.array(genarr)) / np.array(genarr)
 
 
 def join_and_makedir(parent_path: str, Folder: str):
     """
-    Join directory strings and make new directory if it doesn't exist yet.
+    Join directory strings and create a new directory if it doesn't exist yet.
     """
     new_dir = os.path.join(parent_path, Folder)
     if not os.path.isdir(new_dir):
@@ -96,16 +101,17 @@ def make_finalprints(
     resolution_model: float, binratio: float, resolution_abc: float, resolution_puppi: float, saveinfo: str, flist_names: list, flist_inputs: list
 ):
     """
-    Create final information output prints after traing and physics validation is complete.
+    Create final information output prints after training and physics validation is complete.
     """
-    print("Resolution DistillNet", resolution_model)
-    print(f"last bin (between 0.95 and 1) ratio: {binratio:.3f}")
-    print("Resolution AbcNet", resolution_abc)
-    print("Resolution Puppi", resolution_puppi)
-    print("Saveinfo: ", saveinfo)
-    print("Inputs used for training: ", flist_names)
-    print("Total number of inputs: ", len(flist_inputs))
+    print("Resolution DistillNet:", resolution_model)
+    print(f"Last bin (between 0.95 and 1) ratio: {binratio:.3f}")
+    print("Resolution AbcNet:", resolution_abc)
+    print("Resolution Puppi:", resolution_puppi)
+    print("Saveinfo:", saveinfo)
+    print("Inputs used for training:", flist_names)
+    print("Total number of inputs:", len(flist_inputs))
     return
+
 
 
 def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = False):
