@@ -13,3 +13,4 @@ trainparams = {'n_epochs': 20,
                "test_sample": "distill_ttbar_swd",  #sample for testing
                }
 
+bool_val = {}

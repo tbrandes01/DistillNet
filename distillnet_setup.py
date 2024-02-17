@@ -259,10 +259,10 @@ class Net_drop_help(
 
         return out
 
-def load_bestmodel(saveinfo, savedir, modelsavedir: str, modelname: str, device, input_size, hidden_size_l1, hidden_size_l2, num_classes,Is_trial:bool=False):
+def load_bestmodel(saveinfo, savedir, modelsavedir: str, modelname: str, device, input_size, hidden_size_l1, hidden_size_l2, num_classes,is_trial:bool=False):
     #model = Net_drop(input_size, hidden_size_l1, hidden_size_l2, num_classes)
     model = Net_drop_help(input_size, hidden_size_l1, hidden_size_l2, num_classes) #should work but actuall net drop mod
-    if Is_trial:
+    if is_trial:
         model = Net_bnorm(input_size, hidden_size_l1, hidden_size_l2, num_classes) #should work but actuall net drop mod
 
     #print(saveinfo)
@@ -284,10 +284,10 @@ def load_bestmodel(saveinfo, savedir, modelsavedir: str, modelname: str, device,
 #     return model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval
 
 
-def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, n_outputs,Is_trial:bool=False):
+def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, n_outputs,is_trial:bool=False):
     train_loader, test_loader, input_size, test, weights_highval = makedataloaders(data, batch_size, maketrain_particles)
     model = Net_drop_mod(input_size, l1_hsize, l2_hsize, n_outputs) #CHANGE
-    if Is_trial:
+    if is_trial:
         model = Net_bnorm(input_size, l1_hsize, l2_hsize, n_outputs) #should work but actuall net drop mod
 
     model.to(device)
@@ -297,12 +297,12 @@ def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, 
     return model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval
 
 
-def calc_datasetweights(truth, Is_makeprints: bool = False):
+def calc_datasetweights(truth, is_makeprints: bool = False):
     count_between_0_and_0_05 = np.sum((truth >= 0) & (truth <= 0.05))
     count_between_0_95_and_1 = np.sum((truth >= 0.95) & (truth <= 1))
     total = count_between_0_and_0_05 + count_between_0_95_and_1
     weights_highval = total / count_between_0_95_and_1
-    if Is_makeprints:
+    if is_makeprints:
         print(f"Values between 0 and 0.05: {count_between_0_and_0_05}")
         print(f"Values between 0.95 and 1: {count_between_0_95_and_1}")
         print(f"Total number of values for calc: {total}")
@@ -337,13 +337,13 @@ def makedataloaders(dat: tuple, batch_size: int, num_particles: int):
     )  # use dataloader to iterate over validation dataset
 
     input_size = dataset_train.numfeatures()  # size of input vector
-    weights_highval = calc_datasetweights(dat[1][0:num_particles], Is_makeprints=True)
+    weights_highval = calc_datasetweights(dat[1][0:num_particles], is_makeprints=True)
     weights_highval = 3
 
     return train_loader, test_loader, input_size, test, weights_highval
 
 
-def validation(model, device, valid_loader, loss_function, weights_highval, Is_weighted_error: bool = False):
+def validation(model, device, valid_loader, loss_function, weights_highval, is_weighted_error: bool = False):
     model.eval()
     loss_total = 0
 
@@ -353,7 +353,7 @@ def validation(model, device, valid_loader, loss_function, weights_highval, Is_w
             features = features.to(device)
             labels = labels.to(device)
 
-            if Is_weighted_error:
+            if is_weighted_error:
                 wloss_tensor = torch.ones_like(labels)
                 #print(wloss_tensor)
                 highval_mask = (labels >= 0.95) & (labels <= 1)
@@ -369,7 +369,7 @@ def validation(model, device, valid_loader, loss_function, weights_highval, Is_w
 
 
 def do_training(model, criterion, optimizer, device, train_loader, test_loader, test, savedir: str, modelsavedir: str, saveinfo: str,
-                weights_highval: int, num_epochs: int, Is_earlystopping: bool = True, Is_dotaylor: bool = False, Is_weighted_error: bool = False):
+                weights_highval: int, num_epochs: int, is_earlystopping: bool = True, is_dotaylor: bool = False, is_weighted_error: bool = False):
     num_epochs = int(num_epochs)
     #num_epochs = 40
     # training part
@@ -388,7 +388,7 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
         varlist = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,15]
         varnames = ["Eta", "Phi", "Logpt", "LogE", 'd0', 'dz', 'puppiw', 'charge', 'pid 1', 'pid 2', 'pid 3', 'pid 4', 'pid 5', 'pid 6', 'pid 7', "pid 8"]
         print('taylor with puppi')
-    if Is_dotaylor:
+    if is_dotaylor:
         model = TaylorAnalysis(model)
         model.setup_tc_checkpoints(
             number_of_variables_in_data=inputsize,
@@ -402,7 +402,7 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
     best_loss_train = 5
     patience = trainparams['patience']
     triggertimes = 0
-    valid = Is_earlystopping
+    valid = is_earlystopping
     best_loss = trainparams['best_loss']
     # training loop
     for epoch in tqdm(range(num_epochs)):
@@ -414,7 +414,7 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
             features = features.to(device)
             labels = labels.to(device)
 
-            if Is_weighted_error:
+            if is_weighted_error:
                 wloss_tensor = torch.ones_like(labels)
                 #print(wloss_tensor)
                 highval_mask = (labels >= 0.95) & (labels <= 1)
@@ -450,14 +450,14 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
             if not os.path.isdir(modelsavedir):
                 os.makedirs(modelsavedir)
             # print(modelsavedir)
-            if Is_dotaylor:
+            if is_dotaylor:
                 torch.save(model.model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
             else:
                 torch.save(model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
             print("best model at: ", epoch)
         print("Training loss per epoch: ", np.mean(_losslist))
         if valid:  # early stopping, if wanted
-            current_loss = validation(model, device, test_loader, criterion, weights_highval, Is_weighted_error)
+            current_loss = validation(model, device, test_loader, criterion, weights_highval, is_weighted_error)
             validationloss.append(current_loss)
             print("The Current Loss:", current_loss)
             if current_loss < best_loss:
@@ -467,7 +467,7 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
                 if not os.path.isdir(modelsavedir):
                     os.makedirs(modelsavedir)
                 # print(modelsavedir)
-                if Is_dotaylor:
+                if is_dotaylor:
                     torch.save(model.model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
                 else:
                     torch.save(model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
@@ -486,11 +486,11 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
                 triggertimes = 0
 
             last_loss = current_loss
-        if Is_dotaylor:
+        if is_dotaylor:
             model.tc_checkpoint(features, epoch=epoch)
             model._apply_abs = True
             x_test = torch.tensor(test[0][0:50000], dtype=torch.float).to(device)
-        if Is_dotaylor:
+        if is_dotaylor:
             model.plot_taylor_coefficients(
                 x_test,
                 considered_variables_idx=varlist,
@@ -500,7 +500,7 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
                 path=[savedir + '/Taylor/' + saveinfo + "_coefficients.pdf"],
             )
             model.plot_checkpoints(path=[savedir + '/Taylor/checkpoints/' + saveinfo + "tc_training.pdf"])
-    if Is_dotaylor:
+    if is_dotaylor:
         return model.model, losslist, validationloss
     else:
         return model, losslist, validationloss

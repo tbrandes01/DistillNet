@@ -114,12 +114,12 @@ def JetEvent(
     #batch_size,
     dR,
     ptcut,
-    Is_standard: bool = True,
-    Is_remove_padding: bool = True,
-    Is_dtrans: bool = False,
-    Is_makeprints: bool = False,
-    Is_standard_scaler: bool = True,
-    Is_min_max_scaler: bool = False,
+    is_standard: bool = True,
+    is_remove_padding: bool = True,
+    is_dtrans: bool = False,
+    is_makeprints: bool = False,
+    is_standard_scaler: bool = True,
+    is_min_max_scaler: bool = False,
 ):
     filename = os.path.join(filedir, sample)
     #print(f"Accessing {filename} for calculating MET")
@@ -145,7 +145,7 @@ def JetEvent(
         gen_vec_reshaped = gen_vec.reshape(4, -1).T
         default_vec_reshaped = default_vec.reshape(4, -1).T
 
-        if Is_remove_padding:
+        if is_remove_padding:
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
             gen_padmask = np.abs(gen_vec_reshaped[:, 0]) > 0.000001
             (
@@ -165,17 +165,17 @@ def JetEvent(
             )
             gen_vec_np = gen_vec_reshaped[gen_padmask]
 
-        convertvec_etaphipt(features_np, Is_log=True)
-        if Is_dtrans:
-            if Is_makeprints:
+        convertvec_etaphipt(features_np, is_log=True)
+        if is_dtrans:
+            if is_makeprints:
                 print("Transforming d0 and dz ")
             features_np[:, 4][np.where(features_np[:, 4] >= 1)] = 1
             features_np[:, 5][np.where(features_np[:, 5] >= 1)] = 1
             features_np[:, 4][np.where(features_np[:, 4] <= -1)] = -1
             features_np[:, 5][np.where(features_np[:, 5] <= -1)] = -1
 
-        if Is_standard:
-            if Is_standard_scaler:
+        if is_standard:
+            if is_standard_scaler:
                 #print(device)
                 if torch.cuda.is_available():
                     #print("deepthoughtscaler")
@@ -183,7 +183,7 @@ def JetEvent(
                 else:
                     #print("portalscaler")
                     scaler = load("/work/tbrandes/work/Delphes_samples/scalers/std_scaler_portal.bin")
-            if Is_min_max_scaler:
+            if is_min_max_scaler:
                 scaler = load("/work/tbrandes/work/Delphes_samples/scalers/min_max_scaler.bin")
             features_std = scaler.transform(features_np)
 
@@ -324,12 +324,12 @@ def JetEvent_2(
     #batch_size,
     dR,
     ptcut,
-    Is_standard: bool = True,
-    Is_remove_padding: bool = True,
-    Is_dtrans: bool = False,
-    Is_makeprints: bool = False,
-    Is_standard_scaler: bool = True,
-    Is_min_max_scaler: bool = False,
+    is_standard: bool = True,
+    is_remove_padding: bool = True,
+    is_dtrans: bool = False,
+    is_makeprints: bool = False,
+    is_standard_scaler: bool = True,
+    is_min_max_scaler: bool = False,
 ):
     filename = os.path.join(filedir, sample)
     #print(f"Accessing {filename} for calculating MET")
@@ -355,7 +355,7 @@ def JetEvent_2(
         gen_vec_reshaped = gen_vec.reshape(4, -1).T
         default_vec_reshaped = default_vec.reshape(4, -1).T
 
-        if Is_remove_padding:
+        if is_remove_padding:
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
             gen_padmask = np.abs(gen_vec_reshaped[:, 0]) > 0.000001
             (
@@ -375,17 +375,17 @@ def JetEvent_2(
             )
             gen_vec_np = gen_vec_reshaped[gen_padmask]
 
-        convertvec_etaphipt(features_np, Is_log=True)
-        if Is_dtrans:
-            if Is_makeprints:
+        convertvec_etaphipt(features_np, is_log=True)
+        if is_dtrans:
+            if is_makeprints:
                 print("Transforming d0 and dz ")
             features_np[:, 4][np.where(features_np[:, 4] >= 1)] = 1
             features_np[:, 5][np.where(features_np[:, 5] >= 1)] = 1
             features_np[:, 4][np.where(features_np[:, 4] <= -1)] = -1
             features_np[:, 5][np.where(features_np[:, 5] <= -1)] = -1
 
-        if Is_standard:
-            if Is_standard_scaler:
+        if is_standard:
+            if is_standard_scaler:
                 #print(device)
                 if torch.cuda.is_available():
                     #print("deepthoughtscaler")
@@ -393,7 +393,7 @@ def JetEvent_2(
                 else:
                     #print("portalscaler")
                     scaler = load(filedir + "std_scaler_portal.bin")
-            if Is_min_max_scaler:
+            if is_min_max_scaler:
                 scaler = load("/work/tbrandes/work/Delphes_samples/scalers/min_max_scaler.bin")
             features_std = scaler.transform(features_np)
 
@@ -467,7 +467,7 @@ def JetEvent_2(
     )
 
 
-def make_jetenergyplot(distiljetE: list, genjetE: list, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr: str, Is_savefig: bool = True, Is_displayplots: bool = False):
+def make_jetenergyplot(distiljetE: list, genjetE: list, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr: str, is_savefig: bool = True, is_displayplots: bool = False):
     figure = plt.figure(figsize=(10, 9))
 
     binsspace = 30
@@ -486,10 +486,10 @@ def make_jetenergyplot(distiljetE: list, genjetE: list, plotdir: str, plotdir_pd
     plt.xlabel('Jet energy in GeV')
     plt.legend(fancybox=True, framealpha=0.1, loc='best', prop={'size': 20})
     sample_file_name0 = 'jetE'
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir + sample_file_name0 + saveinfo + '__time_' + timestr + '.png', dpi=400, bbox_inches='tight')
         plt.savefig(plotdir_pdf + sample_file_name0 + saveinfo + '__time_' + timestr + '.pdf', bbox_inches='tight')
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()
@@ -497,7 +497,7 @@ def make_jetenergyplot(distiljetE: list, genjetE: list, plotdir: str, plotdir_pd
     return
 
 
-def make_jetresolutionplots(responsedistil: list, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr: str, Is_savefig: bool = True, Is_displayplots: bool = False):
+def make_jetresolutionplots(responsedistil: list, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr: str, is_savefig: bool = True, is_displayplots: bool = False):
 
     r2 = resolution(responsedistil)
 
@@ -530,10 +530,10 @@ def make_jetresolutionplots(responsedistil: list, plotdir: str, plotdir_pdf: str
     plt.xlabel(r"$(E_\mathrm{Jet,\,reco}-E_\mathrm{Jet,\,gen})\;/\;E_\mathrm{Jet,\,gen}$")
     plt.legend(fancybox=True, framealpha=0.8, loc='best', prop={'size': 17})#,bbox_to_anchor = (1.02,1),bbox_transform = plt.gca().transAxes,borderaxespad =0)
     sample_file_name0 = 'jetresolution'
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir + sample_file_name0 + saveinfo + '__time_' + timestr + '.png', dpi=400, bbox_inches='tight')
         plt.savefig(plotdir_pdf + sample_file_name0 + saveinfo + '__time_' + timestr + '.pdf', bbox_inches='tight')
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()

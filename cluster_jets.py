@@ -34,8 +34,8 @@ dR = 0.4
 ptcut = 10
 sample = w_sample
 
-Is_savefig = True
-Is_displayplots = True
+is_savefig = True
+is_displayplots = True
 
 maketrain_part = int(1.4e7)
 min_event = int(maketrain_part / 9000)
@@ -101,8 +101,8 @@ try:
             device,
             dR,
             ptcut=ptcut,
-            Is_standard=True,
-            Is_remove_padding=True,
+            is_standard=True,
+            is_remove_padding=True,
         )
 
     #   e_valabc = np.append(e_valabc, jetsabc[1])
@@ -169,5 +169,5 @@ distiljetE = corinputs(df, 0)
 genjetE = corinputs(df, 1)
 responsedistil = corinputs(df, 2)
 
-#make_jetenergyplot(distiljetE, genjetE, plotdir, plotdir_pdf, saveinfo, timestr, Is_savefig=Is_savefig, Is_displayplots=Is_displayplots)
-#make_jetresolutionplots(responsedistil, plotdir, plotdir_pdf, saveinfo, timestr, Is_savefig=Is_savefig, Is_displayplots=Is_displayplots)
+#make_jetenergyplot(distiljetE, genjetE, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
+#make_jetresolutionplots(responsedistil, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)

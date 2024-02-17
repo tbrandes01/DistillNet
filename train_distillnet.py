@@ -40,29 +40,29 @@ print(len(flist_inputs))
 
 saveinfo = f"_trainpart_{hparams['maketrain_particles']:.2E}__Batchs_{hparams['batch_size']}__numep_{trainparams['n_epochs']}_7_3_bnL4_werr3_nopup"
 
-Is_displayplots = False
-Is_savefig = True
-Is_remove_padding = True
-Is_min_max_scaler = False
-Is_standard_scaler = True
-Is_dtrans = False
-Is_do_taylor = True
-Is_weighted_error = True
-Is_trial = True
-if Is_min_max_scaler:
+is_displayplots = False
+is_savefig = True
+is_remove_padding = True
+is_min_max_scaler = False
+is_standard_scaler = True
+is_dtrans = False
+is_do_taylor = True
+is_weighted_error = True
+is_trial = True
+if is_min_max_scaler:
     saveinfo = saveinfo + "_minmaxscaler"
-if Is_standard_scaler:
+if is_standard_scaler:
     saveinfo = saveinfo + "_stdscaler"
 #MODIFIED LOADING PROCEDURE
 
 def main():
     print(saveinfo)
-    nn_inputdata = gettraindata(filedir, trainparams['train_sample'], trainparams['test_sample'], flist_inputs, scalerdir, Is_dtrans=Is_dtrans, Is_standard=True, Is_remove_padding=Is_remove_padding,
-                                Is_min_max_scaler=Is_min_max_scaler, Is_standard_scaler=Is_standard_scaler, Is_makeplots=False)
+    nn_inputdata = gettraindata(filedir, trainparams['train_sample'], trainparams['test_sample'], flist_inputs, scalerdir, is_dtrans=is_dtrans, is_standard=True, is_remove_padding=is_remove_padding,
+                                is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_makeplots=False)
     model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval = nn_setup(nn_inputdata, device, hparams['batch_size'],
                                                                                                         hparams['maketrain_particles'], hparams['L1_hsize'],
                                                                                                         hparams['L2_hsize'], hparams['n_outputs'],
-                                                                                                        Is_trial=Is_trial)
+                                                                                                        is_trial=is_trial)
     print('Model hyperparams ', hparams)
     print('Model trainparams ', trainparams)
     print("Model's state_dict:")
@@ -70,12 +70,12 @@ def main():
         print(param_tensor, "\t", model.state_dict()[param_tensor].size())
     weights_highval = 3
     model, losslist, validationloss = do_training(model, criterion, optimizer, device, train_loader, test_loader, test, savedir,
-                                                modelsavedir, saveinfo, weights_highval, trainparams['n_epochs'], Is_dotaylor=Is_do_taylor,
-                                                Is_weighted_error=Is_weighted_error)
+                                                modelsavedir, saveinfo, weights_highval, trainparams['n_epochs'], is_dotaylor=is_do_taylor,
+                                                is_weighted_error=is_weighted_error)
 
-    make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, Is_savefig=Is_savefig, Is_displayplots=Is_displayplots)
+    make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
     met_model = load_bestmodel(saveinfo, savedir, modelsavedir, 'bestmodel_trainloss', device, input_size, hparams['L1_hsize'], hparams['L2_hsize'],
-                                hparams['n_outputs'], Is_trial=Is_trial)
+                                hparams['n_outputs'], is_trial=is_trial)
 
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
     maxevent = int(nn_inputdata[3])
@@ -84,7 +84,7 @@ def main():
     print("Minevent", minevent)
     for i in tqdm(range(minevent, maxevent)):
         pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(filedir, trainparams['test_sample'], flist_inputs, met_model, device, i, hparams['maketrain_particles'],
-                                                                        Is_min_max_scaler=Is_min_max_scaler, Is_standard_scaler=Is_standard_scaler, Is_dtrans=Is_dtrans)
+                                                                        is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
         distill_wgts.append(pred)
         abc_wgts.append(abc)
         puppi_wgts.append(puppi)
@@ -98,10 +98,10 @@ def main():
     print("Resolution DistillNet", resolution_model)
     print("Resolution AbcNet", resolution_abc)
     print("Resolution Puppi", resolution_puppi)
-    make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, Is_displayplots=Is_displayplots)
+    make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots=is_displayplots)
     last_bin_ratio = make_histoweight_mod(distill_wgts, abc_wgts, puppi_wgts, resolution_model, resolution_abc,
-                                        resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, trainparams['test_sample'], Is_displayplots=Is_displayplots)
-    make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, Is_savefig=True, Is_displayplots=Is_displayplots)
+                                        resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, trainparams['test_sample'], is_displayplots=is_displayplots)
+    make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=True, is_displayplots=is_displayplots)
     print(f"Last bin ratio {last_bin_ratio*100:.2f} %")
     print('Savinfo: ', saveinfo)
     print('Inputs used for training: ', flist_names)

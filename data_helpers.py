@@ -76,11 +76,11 @@ def join_and_makedir(parent_path: str, Folder: str):
     return new_dir
 
 
-def convertvec_etaphipt(p_vec, Is_log: bool = False, Is_remove_padding: bool = False):
+def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = False):
     vec_input = vector.array({'px': p_vec[:, 0], 'py': p_vec[:, 1], 'pz': p_vec[:, 2], 'energy': p_vec[:, 3]})
     p_vec[:, 0], p_vec[:, 1], p_vec[:, 2] = vec_input.eta, vec_input.phi, vec_input.pt
-    if Is_log:
-        if Is_remove_padding:
+    if is_log:
+        if is_remove_padding:
             p_vec[:, 2], p_vec[:, 3] = np.log(p_vec[:, 2]), np.log(p_vec[:, 3])
             return
         else:
@@ -99,19 +99,19 @@ def makeratio(val_of_bins_x1, val_of_bins_x2):
 
 
 
-def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list, scalerdir: str, Is_dtrans: bool = False, Is_remove_padding: bool = True,
-                 Is_standard: bool = True, Is_min_max_scaler: bool = False, Is_standard_scaler: bool = True, Is_makeplots: bool = False, Is_makeprints: bool= True):
+def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list, scalerdir: str, is_dtrans: bool = False, is_remove_padding: bool = True,
+                 is_standard: bool = True, is_min_max_scaler: bool = False, is_standard_scaler: bool = True, is_makeplots: bool = False, is_makeprints: bool= True):
 
     filename = os.path.join(filedir, sample)
     filename_test = os.path.join(filedir, sample_test)
     with h5py.File(filename_test, "r") as f:
         featurelist_test = f["distill_inputs_default"][flist_inputs, :, :]
         _, n_events_test, _ = featurelist_test.shape
-    if Is_makeprints:
+    if is_makeprints:
         print(f'Accessing {filename} for training DistillNet')
 
     with h5py.File(filename, "r") as f:
-        if Is_makeprints:
+        if is_makeprints:
             print(f.keys())
         featurelist = f["distill_inputs_default"][flist_inputs, :, :]
 
@@ -120,16 +120,16 @@ def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list
         n_features, n_events, n_particles = featurelist.shape
         features_reshaped = featurelist.reshape(n_features, -1).T
         abc_truth_reshaped = abc_truth.reshape(1, -1).T
-        if Is_makeprints:
+        if is_makeprints:
             print(f'Shape of input matrix with padding {features_reshaped.shape}')
             print(f'Shape of abc truth with padding {abc_truth_reshaped.shape}')
 
-        if Is_remove_padding:
-            if Is_makeprints:
+        if is_remove_padding:
+            if is_makeprints:
                 print("Removing padded particles.....")
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
             features_nopad, abc_nopad = features_reshaped[padmask_px], abc_truth_reshaped[padmask_px]
-            if Is_makeprints:
+            if is_makeprints:
                 print(f'Shape of input matrix without padding {features_nopad.shape}')
                 print(f'Shape of abc truth without padding {abc_nopad.shape}')
         else:
@@ -138,23 +138,23 @@ def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list
             print(f'Shape of input matrix with padding {features_nopad.shape}')
             print(f'Shape of abc truth with padding {abc_nopad.shape}')
     
-        convertvec_etaphipt(features_nopad, Is_log=True, Is_remove_padding=Is_remove_padding)
-        if Is_dtrans:
-            if Is_makeprints:
+        convertvec_etaphipt(features_nopad, is_log=True, is_remove_padding=is_remove_padding)
+        if is_dtrans:
+            if is_makeprints:
                 print("Transforming d0 and dz ")
             features_nopad[:, 4][np.where(features_nopad[:, 4] >= 1)] = 1
             features_nopad[:, 5][np.where(features_nopad[:, 5] >= 1)] = 1
             features_nopad[:, 4][np.where(features_nopad[:, 4] <= -1)] = -1
             features_nopad[:, 5][np.where(features_nopad[:, 5] <= -1)] = -1
 
-        if Is_standard:
-            if Is_standard_scaler:
+        if is_standard:
+            if is_standard_scaler:
                 scaler = preprocessing.StandardScaler()
                 scaler.fit(features_nopad)
                 dump(scaler, scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin", compress=True)
-                if Is_makeprints:
+                if is_makeprints:
                     print("Applying standard scaler transformation")
-            if Is_min_max_scaler:
+            if is_min_max_scaler:
                 scaler = preprocessing.MinMaxScaler()
                 scaler.fit(features_nopad)
                 dump(scaler, scalerdir + "/min_max_scaler.bin", compress=True)
@@ -163,7 +163,7 @@ def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list
             features_std = scaler.transform(features_nopad)
         else:
             features_std = features_nopad
-        if Is_makeplots:
+        if is_makeplots:
             fig, ax = plt.subplots(nrows=6, ncols=3, figsize=(20, 35))
             fig.suptitle("Features before transformation", fontsize="x-large")
             for j in range(0, len(featurelist[:, 0, 0])):
@@ -191,8 +191,8 @@ def gettraindata(filedir: str, sample: str, sample_test: str, flist_inputs: list
         return features_std, abc_nopad, n_events, n_events_test
 
 
-def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: str, device:str, min_event: int, Is_remove_padding: bool = True,
-                 Is_standard: bool = True, Is_min_max_scaler: bool = True, Is_standard_scaler: bool = False, Is_makeplots: bool = False,Is_dtrans: bool= False, Is_makeprints: bool = True):
+def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: str, device:str, min_event: int, is_remove_padding: bool = True,
+                 is_standard: bool = True, is_min_max_scaler: bool = True, is_standard_scaler: bool = False, is_makeplots: bool = False,is_dtrans: bool= False, is_makeprints: bool = True):
 
     filename = os.path.join(filedir, sample)
     print(f'Accessing {filename} for testing DistillNet energy deposits')
@@ -218,7 +218,7 @@ def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: s
         print(f'Shape of abc truth with padding {abc_truth_reshaped.shape}')
         print(f'Shape of PUPPI with padding {puppiw_reshaped.shape}')
 
-        if Is_remove_padding:
+        if is_remove_padding:
             print("Removing padded particles.....")
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
             features_nopad, abc_nopad, puppiw_nopad, pu_vec_nopad, nopu_vec_nopad = features_reshaped[padmask_px], abc_truth_reshaped[padmask_px], puppiw_reshaped[padmask_px], pu_vec_reshaped[padmask_px], nopu_vec_resphaed[padmask_px]
@@ -230,26 +230,26 @@ def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: s
             print(f'Shape of input matrix with padding {features_nopad.shape}')
             print(f'Shape of abc truth with padding {abc_nopad.shape}')
     
-        convertvec_etaphipt(features_nopad, Is_log=True, Is_remove_padding=Is_remove_padding)
+        convertvec_etaphipt(features_nopad, is_log=True, is_remove_padding=is_remove_padding)
         convertvec_etaphipt(pu_vec_nopad)
         convertvec_etaphipt(nopu_vec_nopad)
-        if Is_dtrans:
-            if Is_makeprints:
+        if is_dtrans:
+            if is_makeprints:
                 print("Transforming d0 and dz ")
             features_nopad[:, 4][np.where(features_nopad[:, 4] >= 1)] = 1
             features_nopad[:, 5][np.where(features_nopad[:, 5] >= 1)] = 1
             features_nopad[:, 4][np.where(features_nopad[:, 4] <= -1)] = -1
             features_nopad[:, 5][np.where(features_nopad[:, 5] <= -1)] = -1
 
-        if Is_standard:
-            if Is_standard_scaler:
+        if is_standard:
+            if is_standard_scaler:
                 if torch.cuda.is_available():
                     print("deepthoughtscaler")
                     scaler = load(scalerdir + "std_scaler.bin")
                 else:
                     print("portalscaler")
                     scaler = load(scalerdir + "std_scaler_nopup_ens_portal1.bin")
-            if Is_min_max_scaler:
+            if is_min_max_scaler:
                 scaler = load(scalerdir + "min_max_scaler.bin")
 
                 #dump(scaler, scalerdir + "/min_max_scaler.bin", compress=True)
@@ -257,7 +257,7 @@ def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: s
 
             features_std = scaler.transform(features_nopad)
 
-        if Is_makeplots:
+        if is_makeplots:
             fig, ax = plt.subplots(nrows=6, ncols=3, figsize=(20, 35))
             fig.suptitle("Features before transformation", fontsize="x-large")
             for j in range(0, len(featurelist[:, 0, 0])):
@@ -279,7 +279,7 @@ def getdata_deposits(filedir: str, sample: str, flist_inputs: list, scalerdir: s
 
 
 
-def make_lossplot(losslist: list, validationloss: list, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr:str, Is_savefig: bool = False, Is_displayplots: bool = False):
+def make_lossplot(losslist: list, validationloss: list, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr:str, is_savefig: bool = False, is_displayplots: bool = False):
     plt.figure(figsize=(8, 7))
     # plot loss over epochs
     plt.plot(np.arange(0, len(losslist)), losslist, color="b", label="Train loss", zorder=1)
@@ -292,10 +292,10 @@ def make_lossplot(losslist: list, validationloss: list, plotdir: str, plotdir_pd
     plt.ylabel("Loss")
     plt.legend(fancybox=True, framealpha=0.8, loc='upper right',prop={'size': 20})
     sample_file_name0 = "Loss"
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir + sample_file_name0 + saveinfo + '__time_' + timestr + '.png', dpi=400, bbox_inches='tight')
         plt.savefig(plotdir_pdf + sample_file_name0 + saveinfo + '__time_' + timestr + '.pdf', bbox_inches='tight')
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()
@@ -319,7 +319,7 @@ def do_weightpred(test_loader, model, device):
     return weight_prediction
 
 
-def make_histoweight(test: list, test_loader, model, device: str, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr:str, Is_savefig: bool = False, Is_displayplots: bool = False):
+def make_histoweight(test: list, test_loader, model, device: str, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr:str, is_savefig: bool = False, is_displayplots: bool = False):
     truth = test[1]
     truth = np.concatenate(truth)
     weight_prediction = do_weightpred(test_loader, model, device)
@@ -344,10 +344,10 @@ def make_histoweight(test: list, test_loader, model, device: str, plotdir: str, 
     plt.xlabel("Weight")
     plt.ylabel("Number of particles")
     sample_file_name1 = "wgts"
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir + sample_file_name1 + saveinfo + '__time_' + timestr + '.png', dpi=400, bbox_inches='tight')
         plt.savefig(plotdir_pdf + sample_file_name1 + saveinfo + '__time_' + timestr + '.pdf', bbox_inches='tight')
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()
@@ -355,7 +355,7 @@ def make_histoweight(test: list, test_loader, model, device: str, plotdir: str, 
     return ratiolast
 
 
-def make_metplots(abcMET: list, puppiMET: list, distilMET: list,res_abc: float, res_model: float, res_puppi: float, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr: str, Is_savefig: bool = True, Is_displayplots: bool = False):
+def make_metplots(abcMET: list, puppiMET: list, distilMET: list,res_abc: float, res_model: float, res_puppi: float, plotdir: str, plotdir_pdf: str, saveinfo: str, timestr: str, is_savefig: bool = True, is_displayplots: bool = False):
 
     figure,ax = plt.subplots(2,1,figsize=(8,7),gridspec_kw={'height_ratios': [0.8, 0.2]})
     binsspace=np.arange(0,160,8)
@@ -403,10 +403,10 @@ def make_metplots(abcMET: list, puppiMET: list, distilMET: list,res_abc: float, 
     ax[0].legend(fancybox=True, framealpha=0.8, loc='best',prop={'size': 14})
     
     sample_file_name1 = "met_plot"
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir + sample_file_name1 + saveinfo + '__time_' + timestr + '.png', dpi=400, bbox_inches='tight')
         plt.savefig(plotdir_pdf + sample_file_name1 + saveinfo + '__time_' + timestr + '.pdf', bbox_inches='tight')
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()
@@ -415,7 +415,7 @@ def make_metplots(abcMET: list, puppiMET: list, distilMET: list,res_abc: float, 
     #plt.savefig(results_dir+"MET_complete_ratio.pdf",bbox_inches='tight')
     #plt.savefig(results_dir+"MET_complete_ratio",dpi=500,bbox_inches='tight')
 
-def make_histoweight_mod(predictions, truth, puppiw, res_model,res_abc,res_puppi, plotdir, plotdir_pdf, saveinfo, timestr,sample, Is_savefig: bool= True, Is_displayplots: bool = False):
+def make_histoweight_mod(predictions, truth, puppiw, res_model,res_abc,res_puppi, plotdir, plotdir_pdf, saveinfo, timestr,sample, is_savefig: bool= True, is_displayplots: bool = False):
     predictions = np.concatenate(predictions)
     truth = np.concatenate(truth)
     puppiw = np.concatenate(puppiw)
@@ -459,12 +459,12 @@ def make_histoweight_mod(predictions, truth, puppiw, res_model,res_abc,res_puppi
 
     print("last bin (between 0.95 and 1) ratio:",bins2[-1]/bins1[-1])
     sample_file_name1 = "wgts"
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir + sample_file_name1 + saveinfo + sample.replace('.h5', '') + '__time_' + timestr + '.png', dpi=400, bbox_inches='tight')
         plt.savefig(plotdir_pdf + sample_file_name1 + saveinfo + sample.replace('.h5', '') + '__time_' + timestr + '.pdf', bbox_inches='tight')
         #magicdir = '/work/tbrandes/work/Delphes_samples/met_results/'
         #df.to_hdf(magicdir + sample_file_name1 + saveinfo + sample, key='weights', mode='w')  
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()
@@ -472,7 +472,7 @@ def make_histoweight_mod(predictions, truth, puppiw, res_model,res_abc,res_puppi
     return ratiolast
 
 
-def gettraindata_oldnet(filename, flist, standard: bool = True, remove_padding: bool = True, Is_makeplots: bool = False):
+def gettraindata_oldnet(filename, flist, standard: bool = True, remove_padding: bool = True, is_makeplots: bool = False):
 
     with h5py.File(filename, "r") as f:
         scaler = preprocessing.StandardScaler()
@@ -502,7 +502,7 @@ def gettraindata_oldnet(filename, flist, standard: bool = True, remove_padding: 
                 combinedfeatures[padmask_pt],
                 NNw_allpart[padmask_pt],
             )
-        if Is_makeplots:
+        if is_makeplots:
             fig,ax = plt.subplots(nrows=6,ncols=3,figsize=(20,35))
             fig.suptitle("Features before transformation", fontsize="x-large")
 
@@ -525,7 +525,7 @@ def gettraindata_oldnet(filename, flist, standard: bool = True, remove_padding: 
         if standard:
             # apply standardization transformation to data
             combinedfeatures_trans = scaler.transform(combinedfeatures)
-        if Is_makeplots:
+        if is_makeplots:
             fig,ax = plt.subplots(nrows=6,ncols=3,figsize=(20,35))
             fig.suptitle("Features after transformation", fontsize="x-large")
 
@@ -564,7 +564,7 @@ def resolution_response(arr):
     return resolutions
 
 
-def plot_jetresolution(responseabc, responsedistil, responsepuppi, results_dir: str, results_dir_pdf: str, ptcut: int, Is_savefig: bool = True, Is_corr: bool = False, Is_ptcorr: bool = False):
+def plot_jetresolution(responseabc, responsedistil, responsepuppi, results_dir: str, results_dir_pdf: str, ptcut: int, is_savefig: bool = True, is_corr: bool = False, is_ptcorr: bool = False):
     print("responseabcres: ",resolution_response(responseabc))
     print("Distiljetres:",resolution_response(responsedistil))
     print("puppijetres:",resolution_response(responsepuppi))
@@ -607,12 +607,12 @@ def plot_jetresolution(responseabc, responsedistil, responsepuppi, results_dir: 
     plt.xlabel(r"Jet $E_\mathrm{reco}$-Jet $E_\mathrm{gen}$ / $\mathrm{Jet} E_\mathrm{gen}$")
     plt.xlabel(r"$(E_\mathrm{Jet,\,reco}-E_\mathrm{Jet,\,gen})\;/\;E_\mathrm{Jet,\,gen}$")
     plt.legend(fancybox=True, framealpha=0.8, loc='best', prop={'size': 16})#,bbox_to_anchor = (1.02,1),bbox_transform = plt.gca().transAxes,borderaxespad =0)
-    if Is_savefig:
-        if Is_corr:
+    if is_savefig:
+        if is_corr:
             print(f'corr mean is {np.mean(responsedistil)}')
             plt.savefig(results_dir+f"Jet_response_corr_ptcut{ptcut}",dpi=500,bbox_inches='tight')
             plt.savefig(results_dir_pdf+f"Jet_response_corr_ptcut{ptcut}.pdf",bbox_inches='tight')
-        elif Is_ptcorr:
+        elif is_ptcorr:
             plt.savefig(results_dir+f"Jet_response_PTcorr_ptcut{ptcut}",dpi=500,bbox_inches='tight')
             plt.savefig(results_dir_pdf+f"Jet_response_PTcorr_ptcut{ptcut}.pdf",bbox_inches='tight')
         else:
@@ -622,7 +622,7 @@ def plot_jetresolution(responseabc, responsedistil, responsepuppi, results_dir: 
     plt.clf()
     return
     
-def plot_jetenergy(abcjetE, puppijetE, distiljetE, genjetE, results_dir: str, results_dir_pdf: str, ptcut: int, Is_savefig: bool = True):
+def plot_jetenergy(abcjetE, puppijetE, distiljetE, genjetE, results_dir: str, results_dir_pdf: str, ptcut: int, is_savefig: bool = True):
     figure = plt.figure(figsize=(16,8))
 
     binsspace = 50
@@ -646,14 +646,14 @@ def plot_jetenergy(abcjetE, puppijetE, distiljetE, genjetE, results_dir: str, re
     plt.ylabel('Number of jets per bin')
     plt.xlabel('Jet energy in GeV')
     plt.legend(fancybox=True, framealpha=0.1, loc='best', prop={'size': 20})
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(results_dir+f"Jet_energy_ptcut{ptcut}",dpi=500,bbox_inches='tight')
         plt.savefig(results_dir_pdf+f"Jet_energy_ptcut{ptcut}.pdf",bbox_inches='tight')
     plt.clf()
     return
 
 
-def plot_jetratio(abcjetE, puppijetE_true, distiljetE, results_dir: str, results_dir_pdf: str, ptcut: int, Is_savefig: bool = True,Is_corr:bool=False, Is_ptcorr: bool = False):
+def plot_jetratio(abcjetE, puppijetE_true, distiljetE, results_dir: str, results_dir_pdf: str, ptcut: int, is_savefig: bool = True,is_corr:bool=False, is_ptcorr: bool = False):
 
     figure,ax = plt.subplots(2,1,figsize=(8,7),gridspec_kw={'height_ratios': [0.8, 0.2]})
     binsspace = 25
@@ -696,11 +696,11 @@ def plot_jetratio(abcjetE, puppijetE_true, distiljetE, results_dir: str, results
 
     ax[1].set_xlabel(r'Reconstruced Jet Energy $E_\mathrm{Jet,\,reco}$ in GeV')
     ax[0].legend(fancybox=True, framealpha=0.8, loc='upper right', prop={'size': 18})#,bbox_to_anchor=(0.98,1))
-    if Is_savefig:
-        if Is_corr:
+    if is_savefig:
+        if is_corr:
             plt.savefig(results_dir_pdf+f"Jet_energy_ratio_ptcut{ptcut}_corr.pdf",bbox_inches='tight')
             plt.savefig(results_dir+f"Jet_energy_ratio_ptcut{ptcut}_corr",dpi=500,bbox_inches='tight')
-        elif Is_ptcorr:
+        elif is_ptcorr:
             plt.savefig(results_dir_pdf+f"Jet_energy_ratio_ptcut{ptcut}_PTcorr.pdf",bbox_inches='tight')
             plt.savefig(results_dir+f"Jet_energy_ratio_ptcut{ptcut}_PTcorr",dpi=500,bbox_inches='tight')            
         else:
@@ -709,7 +709,7 @@ def plot_jetratio(abcjetE, puppijetE_true, distiljetE, results_dir: str, results
     plt.clf()
     return
 
-def make_depositplots(nparticles, nstart, pu_dat, npu_dat, abcw, puppiw, predictions, plotdir, plotdir_pdf, Is_savefig:bool =True, Is_abc_puppisave: bool=False):
+def make_depositplots(nparticles, nstart, pu_dat, npu_dat, abcw, puppiw, predictions, plotdir, plotdir_pdf, is_savefig:bool =True, is_abc_puppisave: bool=False):
     pts = pu_dat[:,2][nstart:nparticles]
     etas = pu_dat[:,0][nstart:nparticles]
     phis = pu_dat[:,1][nstart:nparticles]
@@ -829,7 +829,7 @@ def make_depositplots(nparticles, nstart, pu_dat, npu_dat, abcw, puppiw, predict
     plt.ylabel("$\\eta$",fontsize=20)
     plt.xticks(fontsize=13)
     plt.yticks(fontsize=13)
-    if Is_abc_puppisave:
+    if is_abc_puppisave:
         plt.savefig(plotdir_pdf + "2D_ptweighted_ratio_ABCNet_nopu.pdf",bbox_inches='tight')
         plt.savefig(plotdir + "2D_ptweighted_ratio_ABCNet_nopu.png",dpi=400,bbox_inches='tight')
     plt.clf()
@@ -848,7 +848,7 @@ def make_depositplots(nparticles, nstart, pu_dat, npu_dat, abcw, puppiw, predict
     plt.ylabel("$\\eta$",fontsize=20)
     plt.xticks(fontsize=13)
     plt.yticks(fontsize=13)
-    if Is_savefig:
+    if is_savefig:
         plt.savefig(plotdir_pdf + "2D_ptweighted_ratio_DistillNet_bestmodel.pdf",bbox_inches='tight')
         plt.savefig(plotdir + "2D_ptweighted_ratio_DistillNet_bestmodel.png",dpi=400,bbox_inches='tight')
     plt.clf()
@@ -867,7 +867,7 @@ def make_depositplots(nparticles, nstart, pu_dat, npu_dat, abcw, puppiw, predict
     plt.ylabel("$\\eta$",fontsize=20)
     plt.xticks(fontsize=13)
     plt.yticks(fontsize=13)
-    if Is_abc_puppisave:
+    if is_abc_puppisave:
         plt.savefig(plotdir_pdf + "2D_ptweighted_ratio_Puppi_nopu.pdf",bbox_inches='tight')
         plt.savefig(plotdir + "2D_ptweighted_ratio_Puppi_nopu.png",dpi=400,bbox_inches='tight')
     plt.clf()
@@ -875,7 +875,7 @@ def make_depositplots(nparticles, nstart, pu_dat, npu_dat, abcw, puppiw, predict
 
 
 
-def derive_corrections(lower_bound: int, upper_bound: int, jetenergy_algorithm: list, jetenergy_gen: list, Is_histcalc:bool=False, Is_histoplots: bool = True):
+def derive_corrections(lower_bound: int, upper_bound: int, jetenergy_algorithm: list, jetenergy_gen: list, is_histcalc:bool=False, is_histoplots: bool = True):
     print(f'Selection between{lower_bound} and {upper_bound}GeV')
 
     selected_jet_energy_algo, mask = apply_mask_bounds(lower_bound, upper_bound, jetenergy_algorithm)
@@ -891,28 +891,28 @@ def derive_corrections_pt(lower_bound: int, upper_bound: int, jetpt_algo: list, 
     ratio = np.mean(selected_jet_pt_algo / selected_jet_pt_gen)
     return ratio
 
-def apply_jetcorrections(corrections_intervals: list, matched_algo, gen_matched_algo, Is_prints: bool = False):
+def apply_jetcorrections(corrections_intervals: list, matched_algo, gen_matched_algo, is_prints: bool = False):
     matched_algo_copy = matched_algo
     for lower_bound, upper_bound in corrections_intervals:
-        ratio = derive_corrections(lower_bound, upper_bound, matched_algo, gen_matched_algo, Is_histoplots=False)
-        if Is_prints:
+        ratio = derive_corrections(lower_bound, upper_bound, matched_algo, gen_matched_algo, is_histoplots=False)
+        if is_prints:
             print(matched_algo)
         matched_algo = np.where((matched_algo_copy >= lower_bound) & (matched_algo_copy <= upper_bound), matched_algo / ratio, matched_algo)
-        if Is_prints:
+        if is_prints:
             print(matched_algo)
     response_corrected = calcresponse(matched_algo, gen_matched_algo)
     return matched_algo, response_corrected   # then do response plot with matched_gen and matched_algo and see what happens
 
 
-def apply_jetcorrections_pt(corrections_intervals: list, matched_pt_algo: list, matched_pt_gen: list, matched_algo: list, gen_matched_algo: list, Is_prints: bool = False):
+def apply_jetcorrections_pt(corrections_intervals: list, matched_pt_algo: list, matched_pt_gen: list, matched_algo: list, gen_matched_algo: list, is_prints: bool = False):
     matched_pt_algo_copy = matched_pt_algo
     for lower_bound, upper_bound in corrections_intervals:
         ratio = derive_corrections_pt(lower_bound, upper_bound, matched_pt_algo, matched_pt_gen)
-        if Is_prints:
+        if is_prints:
             print(matched_algo)
         matched_algo = np.where((matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound), matched_algo / ratio, matched_algo) #calc energy corrections
      #   matched_pt_algo = np.where((matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound), matched_pt_algo / ratio, matched_pt_algo) #calc pt corrections
-        if Is_prints:
+        if is_prints:
             print(matched_algo)
     response_corrected = calcresponse(matched_algo, gen_matched_algo)
     return matched_algo, response_corrected#, matched_pt_algo   # then do response plot with matched_gen and matched_algo and see what happens
@@ -926,7 +926,7 @@ def apply_mask_bounds(lower_bound, upper_bound, jetenergies):
     return jetenergies[combmask], combmask
 
 
-def make_alljetplots( df_jetdata_abc_puppi,plotdir, plotdir_pdf, ptcut, Is_savefig: bool = True,  Is_prints: bool = False):
+def make_alljetplots( df_jetdata_abc_puppi,plotdir, plotdir_pdf, ptcut, is_savefig: bool = True,  is_prints: bool = False):
 
 # distiljetE = corinputs(df_jetdata_model, 0)
 # genjetE = corinputs(df_jetdata_model, 1)
@@ -970,26 +970,26 @@ def make_alljetplots( df_jetdata_abc_puppi,plotdir, plotdir_pdf, ptcut, Is_savef
     corr_intervals = [(i, i + 100) for i in range(0, 601, 100)]
     corr_intervals.append((700, 4500))
                                                                                                                 #CHANGED GENJETE to GENJETE_ABC
-    plot_jetresolution(responseabc, responsedistil, responsepuppi, plotdir, plotdir_pdf,ptcut, Is_savefig=Is_savefig, Is_corr=False)
+    plot_jetresolution(responseabc, responsedistil, responsepuppi, plotdir, plotdir_pdf,ptcut, is_savefig=is_savefig, is_corr=False)
                                                                                                             
-    distilljetE_matched_corrected, response_distill_corrected = apply_jetcorrections(corr_intervals, distilljetE_matched, genjetE_distill_matched, Is_prints=Is_prints)
-    abcjetE_matched_corrected, responseabc = apply_jetcorrections(corr_intervals, abcjetE_matched, genjetE_abc_matched, Is_prints=Is_prints)
-    puppijetE_matched_corrected, responsepuppi = apply_jetcorrections(corr_intervals, puppijetE_matched, genjetE_puppi_matched, Is_prints=Is_prints)
+    distilljetE_matched_corrected, response_distill_corrected = apply_jetcorrections(corr_intervals, distilljetE_matched, genjetE_distill_matched, is_prints=is_prints)
+    abcjetE_matched_corrected, responseabc = apply_jetcorrections(corr_intervals, abcjetE_matched, genjetE_abc_matched, is_prints=is_prints)
+    puppijetE_matched_corrected, responsepuppi = apply_jetcorrections(corr_intervals, puppijetE_matched, genjetE_puppi_matched, is_prints=is_prints)
 
     distilljetE_matched_ptcorrected, response_distill_ptcorr = apply_jetcorrections_pt(corr_intervals, distilljetpt_matched, genjetpt_distill_matched,
-                                                                                        distilljetE_matched, genjetE_distill_matched, Is_prints=Is_prints)
+                                                                                        distilljetE_matched, genjetE_distill_matched, is_prints=is_prints)
     abcjetE_matched_ptcorrected, responseabc_ptcorr = apply_jetcorrections_pt(corr_intervals,abcjetpt_matched, genjetpt_abc_matched,
-                                                                                abcjetE_matched, genjetE_abc_matched, Is_prints=Is_prints)
+                                                                                abcjetE_matched, genjetE_abc_matched, is_prints=is_prints)
     puppijetE_matched_ptcorrected, responsepuppi_ptcorr = apply_jetcorrections_pt(corr_intervals,puppijetpt_matched, genjetpt_puppi_matched,
-                                                                                    puppijetE_matched, genjetE_puppi_matched, Is_prints=Is_prints)
+                                                                                    puppijetE_matched, genjetE_puppi_matched, is_prints=is_prints)
 
-    plot_jetresolution(responseabc, response_distill_corrected, responsepuppi, plotdir, plotdir_pdf, ptcut, Is_savefig=Is_savefig, Is_corr=True)
-    plot_jetresolution(responseabc_ptcorr, response_distill_ptcorr, responsepuppi_ptcorr, plotdir, plotdir_pdf, ptcut, Is_savefig=Is_savefig, Is_ptcorr=True)
+    plot_jetresolution(responseabc, response_distill_corrected, responsepuppi, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig, is_corr=True)
+    plot_jetresolution(responseabc_ptcorr, response_distill_ptcorr, responsepuppi_ptcorr, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig, is_ptcorr=True)
 
-    plot_jetenergy(abcjetE, puppijetE, distiljetE, genjetE_abc, plotdir, plotdir_pdf, ptcut, Is_savefig=Is_savefig)
-    plot_jetratio(abcjetE, puppijetE, distiljetE, plotdir, plotdir_pdf, ptcut, Is_savefig=Is_savefig,Is_corr=False)
-    plot_jetratio(abcjetE_matched_corrected, puppijetE_matched_corrected, distilljetE_matched_corrected, plotdir, plotdir_pdf, ptcut, Is_savefig=Is_savefig,Is_corr=True)
-    plot_jetratio(abcjetE_matched_ptcorrected, puppijetE_matched_ptcorrected, distilljetE_matched_corrected, plotdir, plotdir_pdf, ptcut, Is_savefig=Is_savefig,Is_ptcorr=True)
+    plot_jetenergy(abcjetE, puppijetE, distiljetE, genjetE_abc, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig)
+    plot_jetratio(abcjetE, puppijetE, distiljetE, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig,is_corr=False)
+    plot_jetratio(abcjetE_matched_corrected, puppijetE_matched_corrected, distilljetE_matched_corrected, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig,is_corr=True)
+    plot_jetratio(abcjetE_matched_ptcorrected, puppijetE_matched_ptcorrected, distilljetE_matched_corrected, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig,is_ptcorr=True)
     # datadict_response_corrpt = {'distilljetE_matched_ptcorrected':distilljetE_matched_ptcorrected,
     #                             'response_distill_ptcorr':response_distill_ptcorr,
     #                             'abcjetE_matched_ptcorrected':abcjetE_matched_ptcorrected,

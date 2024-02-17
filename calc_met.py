@@ -83,12 +83,12 @@ def get_mets(
     met_model,
     device: str,
     Events: int,
-    Is_remove_padding: bool = True,
-    Is_standard: bool = True,
-    Is_min_max_scaler: bool = True,
-    Is_standard_scaler: bool = False,
-    Is_dtrans: bool = False,
-    Is_makeprints: bool = False,
+    is_remove_padding: bool = True,
+    is_standard: bool = True,
+    is_min_max_scaler: bool = True,
+    is_standard_scaler: bool = False,
+    is_dtrans: bool = False,
+    is_makeprints: bool = False,
 ):
     filename = os.path.join(filedir, sample)
     veclist = [0, 1, 2, 3]
@@ -111,7 +111,7 @@ def get_mets(
         gen_vec_reshaped = gen_vec.reshape(4, -1).T
         default_vec_reshaped = default_vec.reshape(4, -1).T
 
-        if Is_remove_padding:
+        if is_remove_padding:
            # print("Removing padded particles.....")
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
             gen_padmask = np.abs(gen_vec_reshaped[:, 0]) > 0.000001
@@ -132,23 +132,23 @@ def get_mets(
             )
             gen_vec_np = gen_vec_reshaped[gen_padmask]
 
-        convertvec_etaphipt(features_np, Is_log=True)
-        if Is_dtrans:
-            if Is_makeprints:
+        convertvec_etaphipt(features_np, is_log=True)
+        if is_dtrans:
+            if is_makeprints:
                 print("Transforming d0 and dz ")
             features_np[:, 4][np.where(features_np[:, 4] >= 1)] = 1
             features_np[:, 5][np.where(features_np[:, 5] >= 1)] = 1
             features_np[:, 4][np.where(features_np[:, 4] <= -1)] = -1
             features_np[:, 5][np.where(features_np[:, 5] <= -1)] = -1
 
-        if Is_standard:
-            if Is_standard_scaler:
+        if is_standard:
+            if is_standard_scaler:
                 if len(flist_inputs) == 15:
                     f"/std_scaler_feat{len(flist_inputs)}.bin"
                     scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
                 if len(flist_inputs) == 16:
                     scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
-            if Is_min_max_scaler:
+            if is_min_max_scaler:
                 scaler = load(scalerdir + "/min_max_scaler.bin")
             features_std = scaler.transform(features_np)
 
@@ -174,7 +174,7 @@ def get_mets(
 
 
 
-def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, Is_displayplots: bool = False):
+def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False):
     plt.figure(figsize=(8, 7))
     binsspace = np.arange(-1, 3.1, 0.1)
     ranges = (-1, 3)
@@ -199,7 +199,7 @@ def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr,
     plt.ylim(*_ylim)
 
     plt.savefig(plotdir + "response_smaller" + saveinfo + '__time_' + timestr + '.png', dpi=500, bbox_inches='tight')
-    if Is_displayplots:
+    if is_displayplots:
         plt.show()
     else:
         plt.clf()
