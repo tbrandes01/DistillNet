@@ -47,18 +47,6 @@ class WeightedMAE(nn.L1Loss):
             return super().forward(input, target)
 
 
-class WeightedMAE_2(nn.Module):
-    def __init__(self, weights):
-        super(WeightedMAE_2, self).__init__()
-        self.weights = weights
-
-    def forward(self, y_pred, y_true):
-        absolute_errors = torch.abs(y_pred - y_true)
-        weighted_absolute_errors = absolute_errors * self.weights.unsqueeze(1)
-        loss = torch.mean(weighted_absolute_errors)
-        return loss
-
-
 class FeatureDataset(Dataset):  # create Dataset object for Dataloader to iterate over
     def __init__(self, data, transform=None, target_transform=None):
         # define traindata and truth labels
@@ -81,215 +69,48 @@ class FeatureDataset(Dataset):  # create Dataset object for Dataloader to iterat
         return len(self.ftensor[0])
 
 
-class Net_bnorm(
+class DistillNet(
     nn.Module
 ):  # define Neural Net, feed forward net with 5 input nodes, 2 hidden layers and relu,sigmoid activation
     def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
-        super(Net_bnorm, self).__init__()
+        super(DistillNet, self).__init__()
         self.input_size = input_size
-
         self.l1 = nn.Linear(input_size, hidden_size_l1)
-        self.bn1 = nn.BatchNorm1d(hidden_size_l1)
         self.l2 = nn.Linear(hidden_size_l1, hidden_size_l2)
         self.bn2 = nn.BatchNorm1d(hidden_size_l2)
-        self.l3 = nn.Linear(hidden_size_l2, hidden_size_l2)
-        self.l4 = nn.Linear(hidden_size_l2, num_classes)
-
-        self.relu = nn.ReLU()
-        self.sig = nn.Sigmoid()
-        self.tanh = nn.Tanh()
-        self.lrelu = nn.LeakyReLU()
-
-    def forward(self, x):
-        out = self.l1(x)
-        out = self.bn1(out)
-        out = self.lrelu(out)
-        out = self.l2(out)
-        out = self.bn2(out)
-        out = self.lrelu(out)
-        out = self.l3(out)
-        out = self.lrelu(out)
-        out = self.l4(out)
-        out = self.sig(out)
-
-        return out
-
-
-class Net(
-    nn.Module
-):  # define Neural Net, feed forward net with 5 input nodes, 2 hidden layers and relu,sigmoid activation
-    def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
-        super(Net, self).__init__()
-        self.input_size = input_size
-
-        self.l1 = nn.Linear(input_size, hidden_size_l1)
-        #self.bn1 = nn.BatchNorm1d(hidden_size_l1)
-        self.l2 = nn.Linear(hidden_size_l1, hidden_size_l2)
-        #self.bn2 = nn.BatchNorm1d(hidden_size_l2)
         self.l3 = nn.Linear(hidden_size_l2, num_classes)
-
         self.relu = nn.ReLU()
         self.sig = nn.Sigmoid()
-        self.tanh = nn.Tanh()
-        self.lrelu = nn.LeakyReLU()
-
-    def forward(self, x):
-        out = self.l1(x)
-        out = self.relu(out)
-        out = self.l2(out)
-        out = self.relu(out)
-        out = self.l3(out)
-        out = self.sig(out)
-
-        return out
-
-
-class Net_drop(
-    nn.Module
-):  # define Neural Net, feed forward net with 5 input nodes, 2 hidden layers and relu,sigmoid activation
-    def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
-        super(Net_drop, self).__init__()
-        self.input_size = input_size
-
-        self.l1 = nn.Linear(input_size, hidden_size_l1)
-        self.l1_1 = nn.Linear(hidden_size_l1, hidden_size_l1)
-
-        #self.bn1 = nn.BatchNorm1d(hidden_size_l1)
-        self.l2 = nn.Linear(hidden_size_l1, hidden_size_l2)
-
-        self.bn2 = nn.BatchNorm1d(hidden_size_l2)
-        self.l3 = nn.Linear(hidden_size_l2, num_classes)
-
-        self.relu = nn.ReLU()
-        self.sig = nn.Sigmoid()
-        #self.tanh = nn.Tanh()
-        #self.lrelu = nn.LeakyReLU()
         self.dropout = nn.Dropout(0.05)
 
     def forward(self, x):
         out = self.l1(x)
         out = self.relu(out)
-        #out = self.l1_1(out)
-        #out = self.relu(out)
         out = self.dropout(out)
         out = self.l2(out)
-        #out = self.dropout(out)
         out = self.bn2(out)
         out = self.relu(out)
-        out = self.dropout(out)
         out = self.l3(out)
         out = self.sig(out)
-
-        return out
-
-class Net_drop_mod(
-    nn.Module
-):  # define Neural Net, feed forward net with 5 input nodes, 2 hidden layers and relu,sigmoid activation
-    def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
-        super(Net_drop_mod, self).__init__()
-        self.input_size = input_size
-
-        self.l1 = nn.Linear(input_size, hidden_size_l1)
-        #self.l1_1 = nn.Linear(hidden_size_l1, hidden_size_l1)
-
-        #self.bn1 = nn.BatchNorm1d(hidden_size_l1)
-        self.l2 = nn.Linear(hidden_size_l1, hidden_size_l2)
-
-        self.bn2 = nn.BatchNorm1d(hidden_size_l2)
-        self.l3 = nn.Linear(hidden_size_l2, num_classes)
-
-        self.relu = nn.ReLU()
-        self.sig = nn.Sigmoid()
-      #  self.tanh = nn.Tanh()
-      #  self.lrelu = nn.LeakyReLU()
-        self.dropout = nn.Dropout(0.05)
-
-    def forward(self, x):
-        out = self.l1(x)
-        out = self.relu(out)
-        #out = self.l1_1(out)
-        #out = self.relu(out)
-        out = self.dropout(out)
-        out = self.l2(out)
-        #out = self.dropout(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-        #out = self.dropout(out)
-        out = self.l3(out)
-        out = self.sig(out)
-
         return out
     
-class Net_drop_help(
-    nn.Module
-):  # define Neural Net, feed forward net with 5 input nodes, 2 hidden layers and relu,sigmoid activation
-    def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
-        super(Net_drop_help, self).__init__()
-        self.input_size = input_size
 
-        self.l1 = nn.Linear(input_size, hidden_size_l1)
-        #self.l1_1 = nn.Linear(hidden_size_l1, hidden_size_l1)
-     #   self.quant = torch.ao.quantization.QuantStub()
-        #self.bn1 = nn.BatchNorm1d(hidden_size_l1)
-        self.l2 = nn.Linear(hidden_size_l1, hidden_size_l2)
-        self.bn2 = nn.BatchNorm1d(hidden_size_l2)
-        self.l3 = nn.Linear(hidden_size_l2, num_classes)
-
-        self.relu = nn.ReLU()
-        self.sig = nn.Sigmoid()
-      #  self.tanh = nn.Tanh()
-      #  self.lrelu = nn.LeakyReLU()
-      #  self.dropout = nn.Dropout(0.05)
-
-    def forward(self, x):
-    #    out = self.quant(x)
-        out = self.l1(x)
-        out = self.relu(out)
-        #out = self.l1_1(out)
-        #out = self.relu(out)
-        #out = self.dropout(out)
-        out = self.l2(out)
-        #out = self.dropout(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-        #out = self.dropout(out)
-        out = self.l3(out)
-        out = self.sig(out)
-    #    out = self.dequant(out)
-
-        return out
-
-def load_bestmodel(saveinfo, savedir, modelsavedir: str, modelname: str, device, input_size, hidden_size_l1, hidden_size_l2, num_classes,is_trial:bool=False):
-    #model = Net_drop(input_size, hidden_size_l1, hidden_size_l2, num_classes)
-    model = Net_drop_help(input_size, hidden_size_l1, hidden_size_l2, num_classes) #should work but actuall net drop mod
-    if is_trial:
-        model = Net_bnorm(input_size, hidden_size_l1, hidden_size_l2, num_classes) #should work but actuall net drop mod
+def load_bestmodel(saveinfo, savedir, modelsavedir: str, modelname: str, device: str,
+                input_size: int, hidden_size_l1: int, hidden_size_l2: int, num_classes: int):
+    model = DistillNet(input_size, hidden_size_l1, hidden_size_l2, num_classes)
 
     #print(saveinfo)
     #modelname = "bestmodel"
     #modelsavedir = os.path.join(savedir, "Models/")
-    model.load_state_dict(torch.load(modelsavedir + modelname + saveinfo + '.pth', map_location=device),strict=False)
+    model.load_state_dict(torch.load(modelsavedir + modelname + saveinfo + '.pth', map_location=device), strict=True)
     model.to(device)
-    #torch.save(model.state_dict(), '/work/tbrandes/work/Delphes_samples/Models_v5/' + modelname + saveinfo + '.pth')
     return model
 
 
-# def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, n_outputs):
-#     train_loader, test_loader, input_size, test, weights_highval = makedataloaders(data, hparams['batch_size'], hparams['maketrain_particles'])
-#     model = Net_drop(input_size, hparams['L1_hsize'], hparams['L2_hsize'], hparams['n_outputs'])
-#     model.to(device)
-#     criterion = nn.L1Loss()  #Maybe add reg term
-#     #criterion = nn.MSELoss()
-#     optimizer = torch.optim.Adam(model.parameters(), lr=hparams['lr'])
-#     return model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval
 
-
-def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, n_outputs,is_trial:bool=False):
+def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, n_outputs):
     train_loader, test_loader, input_size, test, weights_highval = makedataloaders(data, batch_size, maketrain_particles)
     model = Net_drop_mod(input_size, l1_hsize, l2_hsize, n_outputs) #CHANGE
-    if is_trial:
-        model = Net_bnorm(input_size, l1_hsize, l2_hsize, n_outputs) #should work but actuall net drop mod
-
     model.to(device)
     criterion = nn.L1Loss()  #Maybe add reg term
     #criterion = nn.MSELoss()
