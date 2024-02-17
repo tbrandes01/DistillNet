@@ -77,6 +77,18 @@ def join_and_makedir(parent_path: str, Folder: str):
     return new_dir
 
 
+def make_finalprints(
+    resolution_model: float, resolution_abc: float, resolution_puppi: float, saveinfo: str, flist_names: list, flist_inputs: list
+):
+    print("Resolution DistillNet", resolution_model)
+    print("Resolution AbcNet", resolution_abc)
+    print("Resolution Puppi", resolution_puppi)
+    print("Saveinfo: ", saveinfo)
+    print("Inputs used for training: ", flist_names)
+    print("Total number of inputs: ", len(flist_inputs))
+    return
+
+
 def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = False):
     vec_input = vector.array({"px": p_vec[:, 0], "py": p_vec[:, 1], "pz": p_vec[:, 2], "energy": p_vec[:, 3]})
     p_vec[:, 0], p_vec[:, 1], p_vec[:, 2] = vec_input.eta, vec_input.phi, vec_input.pt
@@ -1072,7 +1084,7 @@ def derive_corrections(
     upper_bound: int,
     jetenergy_algorithm: list,
     jetenergy_gen: list,
-    ):
+):
     print(f"Selection between{lower_bound} and {upper_bound}GeV")
 
     selected_jet_energy_algo, mask = apply_mask_bounds(lower_bound, upper_bound, jetenergy_algorithm)
@@ -1101,7 +1113,8 @@ def apply_jetcorrections(corrections_intervals: list, matched_algo, gen_matched_
         if is_prints:
             print(matched_algo)
     response_corrected = calcresponse(matched_algo, gen_matched_algo)
-    return matched_algo, response_corrected 
+    return matched_algo, response_corrected
+
 
 def apply_jetcorrections_pt(
     corrections_intervals: list,
@@ -1118,14 +1131,15 @@ def apply_jetcorrections_pt(
             print(matched_algo)
         matched_algo = np.where(
             (matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound), matched_algo / ratio, matched_algo
-        )  
+        )
         if is_prints:
             print(matched_algo)
     response_corrected = calcresponse(matched_algo, gen_matched_algo)
     return (
         matched_algo,
         response_corrected,
-    ) 
+    )
+
 
 def apply_mask_bounds(lower_bound, upper_bound, jetenergies):
     mask1 = np.abs(lower_bound) <= jetenergies

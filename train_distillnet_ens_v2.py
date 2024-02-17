@@ -1,17 +1,18 @@
 import torch
 from tqdm import tqdm
 import time
+import numpy as np
 from data_helpers import (fl_inputs, gettraindata, make_lossplot,
-                        make_histoweight_mod, make_metplots, join_and_makedir)
+                        make_histoweight_mod, make_metplots, join_and_makedir, make_finalprints)
 from distillnet_setup import  nn_setup, do_training, load_bestmodel
 from distillnet_config import hparams, trainparams, bool_val, dirs
-from calc_met import get_mets, resolution, make_resolutionplots
+from calc_met import make_resolutionplots, get_met_pyhsicstest
 import matplotlib
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
 
-def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_number: int=0, numtests: int=0, wgt: float=3, is_ensembletest: bool=False):
+def do_training_and_physicstest_DistillNet(filedir: str, savedir: str, device: str='cuda:0', run_number: int=0, numtests: int=0, wgt: float=3, is_ensembletest: bool=False):
 
     modelsavedir = join_and_makedir(savedir, 'Models/')
     plotdir = join_and_makedir(savedir, 'Plots/')
@@ -61,37 +62,17 @@ def maketraining_distill(filedir: str, savedir: str, device: str='cuda:0', run_n
                                                 is_weighted_error=is_weighted_error)
 
     make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
-    met_model = load_bestmodel(saveinfo, modelsavedir, 'bestmodel_trainloss', device, input_size, hparams['L1_hsize'], hparams['L2_hsize'],
+    met_model = load_bestmodel(saveinfo, modelsavedir, trainparams['bestmodel_losstype'], device, input_size, hparams['L1_hsize'], hparams['L2_hsize'],
                                 hparams['n_outputs'])
+    
 
-    distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
-    maxevent = int(nn_inputdata[3])
-    print('Training done, calcluating MET....')
-    minevent = int(hparams['maketrain_particles'] / 9000)
-    print('Toal Number of evaluated events:' , np.abs(maxevent - minevent))
-    for i in tqdm(range(minevent, maxevent)):
-        pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(filedir, scalerdir, trainparams['test_sample'], flist_inputs, met_model, device, i, hparams['maketrain_particles'],
-                                                                        is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
-        distill_wgts.append(pred)
-        abc_wgts.append(abc)
-        puppi_wgts.append(puppi)
-        met_d.append(met_distill)
-        met_a.append(met_abc)
-        met_p.append(met_puppi)
-        met_g.append(met_gen)
-
-    resolution_model, resolution_abc, resolution_puppi = resolution(met_d, met_g), resolution(met_a, met_g), resolution(met_p, met_g)
-
-    print("Resolution DistillNet", resolution_model)
-    print("Resolution AbcNet", resolution_abc)
-    print("Resolution Puppi", resolution_puppi)
+    met_a, met_p, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model = get_met_pyhsicstest(filedir, scalerdir, trainparams['test_sample'],
+                                                                                                                               nn_inputdata, flist_inputs, met_model, device, is_remove_padding=is_remove_padding, is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
     make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots=is_displayplots)
     last_bin_ratio = make_histoweight_mod(distill_wgts, abc_wgts, puppi_wgts, resolution_model, resolution_abc,
                                         resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, trainparams['test_sample'], is_displayplots=is_displayplots)
     make_metplots(met_a, met_p, met_d, resolution_abc, resolution_model, resolution_puppi, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
-    print('Saveinfo: ', saveinfo)
-    print('Inputs used for training: ', flist_names)
-    print('Total number of inputs: ', len(flist_inputs))
+    make_finalprints(resolution_model, resolution_abc, resolution_puppi, saveinfo, flist_names, flist_inputs)
     return resolution_model
 
 
@@ -100,7 +81,7 @@ def main():
     print("Device:", device)
     filedir = dirs['filedir']
     savedir = dirs['savedir']
-    maketraining_distill(filedir=filedir, savedir=savedir, device=device, wgt=trainparams['weightedlossval'])
+    do_training_and_physicstest_DistillNet(filedir=filedir, savedir=savedir, device=device, wgt=trainparams['weightedlossval'])
 
 if __name__ == "__main__":
     main()

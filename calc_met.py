@@ -149,6 +149,28 @@ def get_mets(
         return predictions, abcw_np, puppiw_np, met_distillnet, met_abc, met_puppi, met_gen
 
 
+def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata, flist_inputs: list, met_model, device: str, is_remove_padding: bool, is_min_max_scaler: bool, is_standard_scaler: bool, is_dtrans: bool):
+    
+    distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
+    maxevent = int(nn_inputdata[3])
+    print('Training complete, calcluating MET....')
+    minevent = int(hparams['maketrain_particles'] / 9000)
+    print('Toal Number of evaluated events:' , np.abs(maxevent - minevent))
+    for i in tqdm(range(minevent, maxevent)):
+        pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(filedir, scalerdir, sample, flist_inputs, met_model, device, i, is_remove_padding=is_remove_padding,
+                                                                        is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
+        distill_wgts.append(pred)
+        abc_wgts.append(abc)
+        puppi_wgts.append(puppi)
+        met_d.append(met_distill)
+        met_a.append(met_abc)
+        met_p.append(met_puppi)
+        met_g.append(met_gen)
+
+    resolution_model, resolution_abc, resolution_puppi = resolution(met_d, met_g), resolution(met_a, met_g), resolution(met_p, met_g)
+    return met_a, met_p, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model
+
+
 def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False):
     plt.figure(figsize=(8, 7))
     binsspace = np.arange(-1, 3.1, 0.1)

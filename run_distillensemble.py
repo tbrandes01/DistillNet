@@ -1,11 +1,10 @@
 import torch
 from tqdm import tqdm
 import numpy as np
-from train_distillnet_ens_v2 import maketraining_distill
+from train_distillnet_ens_v2 import do_training_and_physicstest_DistillNet
 from tap import Tap
-import os
-from distillnet_config import hparams, trainparams, dirs
-import numpy as np
+from distillnet_config import dirs
+
 
 class Argparser(Tap):
     cuda: int
@@ -22,7 +21,7 @@ def getresolutions(device, args):
     for wgt in wlist:
         resolutions = []
         for i in tqdm(range(args.numtests)):
-            res = maketraining_distill(dirs['filedir'], args.savedir, device, i, args.numtests, wgt, is_ensembletest=True)
+            res = do_training_and_physicstest_DistillNet(dirs['filedir'], args.savedir, device, i, args.numtests, wgt, is_ensembletest=True)
             resolutions.append(res)
             print(f"resolution at model{i}: {res}")
         resolutions_all.append(resolutions)
@@ -45,7 +44,7 @@ def main():
     device = f"cuda:{args.cuda}" if torch.cuda.is_available() else "cpu"
     print(device)
     resolutions = getresolutions(device, args)
-    makeprints(resolutions, results_dir, args)
+    makeprints(resolutions, args.savedir, args)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ trainparams = {
             'weightedlossval': 3,
             "train_sample": "distill_wjets_emd_prl.h5", #sample for training distill_wjets_swd.h5
             "test_sample": "distill_ttbar_emd_prl.h5",  #sample for testing distill_ttbar_swd.h5
+            'bestmodel_losstype': 'bestmodel_trainloss' # choose whether to calculate physics results on bestmodel_trainloss or bestmodel_valloss
             }
 
 
