@@ -39,7 +39,7 @@ print(flist_names)
 print(len(flist_inputs))
 
 saveinfo = f"_trainpart_{hparams['maketrain_particles']:.2E}__Batchs_{hparams['batch_size']}__numep_{trainparams['n_epochs']}_7_3_bnL4_werr3_nopup"
-
+weights_highval = trainparams['weightedlossval']
 is_displayplots = bool_val['is_displayplots']
 is_savefig = bool_val['is_savefig']
 is_remove_padding = bool_val['is_remove_padding']
@@ -58,7 +58,7 @@ def main():
     print(saveinfo)
     nn_inputdata = gettraindata(filedir, trainparams['train_sample'], trainparams['test_sample'], flist_inputs, scalerdir, is_dtrans=is_dtrans, is_standard=True, is_remove_padding=is_remove_padding,
                                 is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_makeplots=False)
-    model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval = nn_setup(nn_inputdata, device, hparams['batch_size'],
+    model, criterion, optimizer, train_loader, test_loader, test, input_size = nn_setup(nn_inputdata, device, hparams['batch_size'],
                                                                                                         hparams['maketrain_particles'], hparams['L1_hsize'],
                                                                                                         hparams['L2_hsize'], hparams['n_outputs'],
                                                                                                         )
@@ -67,13 +67,12 @@ def main():
     print("Model's state_dict:")
     for param_tensor in model.state_dict():
         print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-    weights_highval = 3
     model, losslist, validationloss = do_training(model, criterion, optimizer, device, train_loader, test_loader, test, savedir,
                                                 modelsavedir, saveinfo, weights_highval, trainparams['n_epochs'], is_dotaylor=is_do_taylor,
                                                 is_weighted_error=is_weighted_error)
 
     make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
-    met_model = load_bestmodel(saveinfo, savedir, modelsavedir, 'bestmodel_trainloss', device, input_size, hparams['L1_hsize'], hparams['L2_hsize'],
+    met_model = load_bestmodel(saveinfo, modelsavedir, 'bestmodel_trainloss', device, input_size, hparams['L1_hsize'], hparams['L2_hsize'],
                                 hparams['n_outputs'])
 
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []

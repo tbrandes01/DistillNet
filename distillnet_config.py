@@ -11,6 +11,7 @@ trainparams = {
             'n_epochs': 20,
             "patience": 5,
             "best_loss": 0.17,
+            'weightedlossval': 3,
             "train_sample": "distill_wjets_swd", #sample for training
             "test_sample": "distill_ttbar_swd",  #sample for testing
             }

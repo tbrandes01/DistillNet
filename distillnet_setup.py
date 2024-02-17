@@ -69,9 +69,7 @@ class FeatureDataset(Dataset):  # create Dataset object for Dataloader to iterat
         return len(self.ftensor[0])
 
 
-class DistillNet(
-    nn.Module
-):  # define Neural Net, feed forward net with 5 input nodes, 2 hidden layers and relu,sigmoid activation
+class DistillNet(nn.Module):
     def __init__(self, input_size, hidden_size_l1, hidden_size_l2, num_classes):
         super(DistillNet, self).__init__()
         self.input_size = input_size
@@ -95,27 +93,20 @@ class DistillNet(
         return out
     
 
-def load_bestmodel(saveinfo, savedir, modelsavedir: str, modelname: str, device: str,
+def load_bestmodel(saveinfo: str, modelsavedir: str, modelname: str, device: str,
                 input_size: int, hidden_size_l1: int, hidden_size_l2: int, num_classes: int):
     model = DistillNet(input_size, hidden_size_l1, hidden_size_l2, num_classes)
-
-    #print(saveinfo)
-    #modelname = "bestmodel"
-    #modelsavedir = os.path.join(savedir, "Models/")
     model.load_state_dict(torch.load(modelsavedir + modelname + saveinfo + '.pth', map_location=device), strict=True)
     model.to(device)
     return model
 
 
-
-def nn_setup(data, device, batch_size, maketrain_particles, l1_hsize, l2_hsize, n_outputs):
-    train_loader, test_loader, input_size, test, weights_highval = makedataloaders(data, batch_size, maketrain_particles)
-    model = Net_drop_mod(input_size, l1_hsize, l2_hsize, n_outputs) #CHANGE
-    model.to(device)
-    criterion = nn.L1Loss()  #Maybe add reg term
-    #criterion = nn.MSELoss()
+def nn_setup(data, batch_size: int, maketrain_particles: int, l1_hsize: int, l2_hsize: int, n_outputs: int):
+    train_loader, test_loader, input_size, test = makedataloaders(data, batch_size, maketrain_particles)
+    model = DistillNet(input_size, l1_hsize, l2_hsize, n_outputs) 
+    criterion = nn.L1Loss() #placeholder criterion for later modified weighted MAE Loss
     optimizer = torch.optim.Adam(model.parameters(), lr=hparams['lr'])
-    return model, criterion, optimizer, train_loader, test_loader, test, input_size, weights_highval
+    return model, criterion, optimizer, train_loader, test_loader, test, input_size
 
 
 def calc_datasetweights(truth, is_makeprints: bool = False):
@@ -159,16 +150,13 @@ def makedataloaders(dat: tuple, batch_size: int, num_particles: int):
 
     input_size = dataset_train.numfeatures()  # size of input vector
     weights_highval = calc_datasetweights(dat[1][0:num_particles], is_makeprints=True)
-    weights_highval = 3
 
-    return train_loader, test_loader, input_size, test, weights_highval
+    return train_loader, test_loader, input_size, test
 
 
 def validation(model, device, valid_loader, loss_function, weights_highval, is_weighted_error: bool = False):
     model.eval()
     loss_total = 0
-
-    # Test validation data
     with torch.no_grad():
         for i, (features, labels) in enumerate(valid_loader):  # iterate over testloader
             features = features.to(device)
@@ -176,10 +164,8 @@ def validation(model, device, valid_loader, loss_function, weights_highval, is_w
 
             if is_weighted_error:
                 wloss_tensor = torch.ones_like(labels)
-                #print(wloss_tensor)
                 highval_mask = (labels >= 0.95) & (labels <= 1)
                 wloss_tensor[highval_mask] *= weights_highval
-                #print(wloss_tensor)
                 loss_function = WeightedMAE(wloss_tensor)
 
             output = model.forward(features)  # calculate model output
@@ -189,11 +175,9 @@ def validation(model, device, valid_loader, loss_function, weights_highval, is_w
     return loss_total / len(valid_loader)
 
 
-def do_training(model, criterion, optimizer, device, train_loader, test_loader, test, savedir: str, modelsavedir: str, saveinfo: str,
-                weights_highval: int, num_epochs: int, is_earlystopping: bool = True, is_dotaylor: bool = False, is_weighted_error: bool = False):
+def do_training(model, criterion, optimizer, device: str, train_loader, test_loader, test, savedir: str, modelsavedir: str, saveinfo: str,
+                weights_highval: float, num_epochs: int, is_earlystopping: bool = True, is_dotaylor: bool = False, is_weighted_error: bool = False):
     num_epochs = int(num_epochs)
-    #num_epochs = 40
-    # training part
     examples = iter(train_loader)  #test if dataloader produces desired output
     samples = next(examples)
     inputsize = len(samples[0][0])
@@ -201,12 +185,12 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
     n_total_steps = len(train_loader)
     losslist = []
     validationloss = []
-    if inputsize == 15:
+    if inputsize == 15: #In case Taylor analysis is to be done without puppiweights as input
         varlist = [0, 1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14]
         varnames = ["Eta", "Phi", "Logpt", "LogE", 'd0', 'dz', 'charge', 'pid 1', 'pid 2', 'pid 3', 'pid 4', 'pid 5', 'pid 6', 'pid 7', "pid 8"]
         print('taylor without puppi')
-    if inputsize == 16:
-        varlist = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,15]
+    if inputsize == 16: #Taylor analysis with puppiweights as input
+        varlist = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         varnames = ["Eta", "Phi", "Logpt", "LogE", 'd0', 'dz', 'puppiw', 'charge', 'pid 1', 'pid 2', 'pid 3', 'pid 4', 'pid 5', 'pid 6', 'pid 7', "pid 8"]
         print('taylor with puppi')
     if is_dotaylor:
@@ -231,32 +215,23 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
         train_loss = 0
         model.train()
         for i, (features, labels) in enumerate(train_loader):  # iterate over trainloader
-            #  should get features and push them to device
             features = features.to(device)
             labels = labels.to(device)
 
             if is_weighted_error:
                 wloss_tensor = torch.ones_like(labels)
-                #print(wloss_tensor)
                 highval_mask = (labels >= 0.95) & (labels <= 1)
                 wloss_tensor[highval_mask] *= weights_highval
-                #print(wloss_tensor)
                 criterion = WeightedMAE(wloss_tensor)
 
-
-            # Forward pass
             outputs = model.forward(features)  # calculate outputs
             loss = criterion.forward(outputs, labels)  # calculate loss
             _losslist.append(loss.to("cpu").detach().numpy())
-
-            # Backward and optimize
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            # break
 
-            if (i + 1) % 5000 == 0:  # some print statement on progress
-                # /numsteps
+            if (i + 1) % 5000 == 0: 
                 print(
                     f"Epoch: [{epoch+1}/{num_epochs}], Batch [{i+1}/{n_total_steps}], :Loss : {loss.item():.4f}"
                 )
@@ -267,27 +242,19 @@ def do_training(model, criterion, optimizer, device, train_loader, test_loader, 
         if train_loss < best_loss_train:
             best_loss_train = train_loss
             modelname = "bestmodel_trainloss"
-            #modelsavedir = os.path.join(savedir, "Models/")
-            if not os.path.isdir(modelsavedir):
-                os.makedirs(modelsavedir)
-            # print(modelsavedir)
             if is_dotaylor:
                 torch.save(model.model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
             else:
                 torch.save(model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
             print("best model at: ", epoch)
         print("Training loss per epoch: ", np.mean(_losslist))
-        if valid:  # early stopping, if wanted
+        if valid:  # validation
             current_loss = validation(model, device, test_loader, criterion, weights_highval, is_weighted_error)
             validationloss.append(current_loss)
             print("The Current Loss:", current_loss)
             if current_loss < best_loss:
                 best_loss = current_loss
                 modelname = "bestmodel_valloss"
-                #modelsavedir = os.path.join(savedir, "Models_v2/")
-                if not os.path.isdir(modelsavedir):
-                    os.makedirs(modelsavedir)
-                # print(modelsavedir)
                 if is_dotaylor:
                     torch.save(model.model.state_dict(), modelsavedir + modelname + saveinfo + '.pth')
                 else:
@@ -331,10 +298,8 @@ def modelpredictions(model, dataloader, batch_size: int, device: str):
     model.to(device)
     model.eval()
     with torch.no_grad():
-        weight_prediction = []
         for i, (features, labels) in enumerate(dataloader):
             features = features.to(device)
-
             outputs = model.forward(features)
             outputs = outputs.view(batch_size)
             op = outputs.to("cpu").numpy()
@@ -353,9 +318,6 @@ def modelpredictions_complete(model, dataloader, device):
             op = _weight_prediction.to("cpu").numpy()
             op = np.squeeze(op)
             weight_prediction.append(op)
-    #print(weight_prediction)
-    #weight_prediction = np.concatenate(weight_prediction)
     weight_prediction = np.array(weight_prediction, dtype='object')
     weight_prediction = np.ravel(weight_prediction)
-   # print(weight_prediction)
     return weight_prediction

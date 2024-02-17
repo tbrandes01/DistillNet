@@ -41,7 +41,6 @@ n_outputs = hparams["n_outputs"]
 saveinfo = '_trainpart_2.20E+07__Batchs_768__numep_44_7_3_bndrop005_werr3_std'
 model = load_bestmodel(
     saveinfo,
-    savedir,
     modelsavedir,
     'bestmodel_trainloss',
     device,
