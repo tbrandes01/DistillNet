@@ -1,23 +1,12 @@
 import torch
-from torch.utils.data import Dataset
-import torch.utils.data as data
-import torch.nn as nn
-import h5py
-import os
-from enum import Enum
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import preprocessing
-import vector
 from tqdm import tqdm
 import time
-from data_helpers import (fl_inputs, fl_vecs, convertvec_etaphipt, gettraindata, make_lossplot,
-                        make_histoweight, make_histoweight_mod, make_metplots, join_and_makedir)
-from distillnet_setup import makedataloaders, nn_setup, validation, do_training, load_bestmodel
+from data_helpers import (fl_inputs, gettraindata, make_lossplot,
+                        make_histoweight_mod, make_metplots, join_and_makedir)
+from distillnet_setup import  nn_setup, do_training, load_bestmodel
 from distillnet_config import hparams, trainparams, bool_val
-from calc_met import get_mets, resolution, genfunc, make_resolutionplots
+from calc_met import get_mets, resolution, make_resolutionplots
 import matplotlib
-from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -52,7 +41,6 @@ if is_min_max_scaler:
     saveinfo += "_minmaxscaler"
 if is_standard_scaler:
     saveinfo += "_stdscaler"
-#MODIFIED LOADING PROCEDURE
 
 def main():
     print(saveinfo)

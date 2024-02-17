@@ -3,20 +3,10 @@ import h5py
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn import preprocessing
-from tqdm import tqdm
 import matplotlib
 from joblib import load
-from data_helpers import fl_inputs, fl_vecs, convertvec_etaphipt, gettraindata, make_lossplot, make_histoweight, make_metplots
-from distillnet_setup import (
-    makedataloaders,
-    nn_setup,
-    validation,
-    do_training,
-    load_bestmodel,
-    modelpredictions,
-    FeatureDataset,
-)
+from data_helpers import convertvec_etaphipt 
+from distillnet_setup import modelpredictions, FeatureDataset
 from distillnet_config import hparams, trainparams
 
 matplotlib.rc("font", size=22, family="serif")
@@ -135,13 +125,9 @@ def get_mets(
 
         if is_standard:
             if is_standard_scaler:
-                if len(flist_inputs) == 15:
-                    f"/std_scaler_feat{len(flist_inputs)}.bin"
-                    scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
-                if len(flist_inputs) == 16:
-                    scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
+                scaler = load(scalerdir + f"/std_scaler_feat{len(flist_inputs)}.bin")
             if is_min_max_scaler:
-                scaler = load(scalerdir + "/min_max_scaler.bin")
+                scaler = load(scalerdir + f"/min_max_scaler_feat{len(flist_inputs)}.bin")
             features_std = scaler.transform(features_np)
 
         convertvec_etaphipt(default_vec_np)

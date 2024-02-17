@@ -172,7 +172,7 @@ def gettraindata(
             if is_min_max_scaler:
                 scaler = preprocessing.MinMaxScaler()
                 scaler.fit(features_nopad)
-                dump(scaler, scalerdir + "/min_max_scaler.bin", compress=True)
+                dump(scaler, scalerdir + f"/min_max_scaler_feat{len(flist_inputs)}.bin", compress=True)
                 print("Applying Min Max scaler transformation")
 
             features_std = scaler.transform(features_nopad)
