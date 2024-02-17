@@ -1,3 +1,6 @@
+"""
+Distillnet config dictionaries. Please add filedir and savedir for own use. The selected hyperparameters are default choices and are not opimized.
+"""
 hparams = {
     "batch_size": 256,  # Batch size
     "maketrain_particles": 1.4e6,  # Particles utlized for training

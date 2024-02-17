@@ -1,3 +1,6 @@
+"""
+Control script for running DistillNet ensemble test.
+"""
 import torch
 from tqdm import tqdm
 import numpy as np

@@ -1,3 +1,6 @@
+"""
+This script contains the functions needed for setting up DistillNet, e.g.the pytorch Distillnet and dataset/dataloader classes.
+"""
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset

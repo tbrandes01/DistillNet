@@ -1,3 +1,6 @@
+"""
+This script contains functions for calculing the Missing Transverse Energy (MET) as event-based quantity.
+"""
 import torch.utils.data as data
 import h5py
 import os

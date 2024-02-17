@@ -22,6 +22,9 @@ from data_helpers import fl_inputs, gettraindata
 
 
 def time_forwardpass(model, dataloader, batch_size, num_eventparticles):
+    """
+    Time forwardpass for DistillNet for given variable batch of particles.
+    """
     model.eval()
     event_time_mod_list = []
     with torch.no_grad():
@@ -75,7 +78,6 @@ modelsavedir = "/work/tbrandes/work/Delphes_samples/Models_v5/"
 
 model = load_bestmodel(
     saveinfo,
-    "",
     modelsavedir,
     "bestmodel_trainloss",
     device,

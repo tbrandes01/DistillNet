@@ -1,7 +1,8 @@
+"""
+Top-level training and inital validation script for DistillNet. After selecting hyperparameters in the config file, execute this script for training.
+"""
 import torch
-from tqdm import tqdm
 import time
-import numpy as np
 from data_helpers import (fl_inputs, gettraindata, make_lossplot,
                         make_weight_histogram, make_metplots, join_and_makedir, make_finalprints)
 from distillnet_setup import  nn_setup, do_training, load_bestmodel
