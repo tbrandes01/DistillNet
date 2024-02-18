@@ -1,5 +1,6 @@
 """
-Top-level training and inital testing script for DistillNet. After selecting hyperparameters in the config file, execute this script for training.
+Top-level training and inital testing script for DistillNet. After selecting 
+hyperparameters in the config file, execute this script for training.
 """
 
 import torch
@@ -67,7 +68,7 @@ def do_training_and_physicstest_DistillNet(
         taylordir = join_and_makedir(savedir, "Taylor/")
         _ = join_and_makedir(taylordir, "checkpoints/")
     print("Saveinfo: ", saveinfo)
-    
+
     nn_inputdata = gettraindata(
         filedir,
         trainparams["train_sample"],
@@ -109,8 +110,17 @@ def do_training_and_physicstest_DistillNet(
         is_weighted_error=is_weighted_error,
     )
 
-    make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
-    
+    make_lossplot(
+        losslist,
+        validationloss,
+        plotdir,
+        plotdir_pdf,
+        saveinfo,
+        timestr,
+        is_savefig=is_savefig,
+        is_displayplots=is_displayplots,
+    )
+
     met_model = load_bestmodel(
         saveinfo,
         modelsavedir,
@@ -122,22 +132,33 @@ def do_training_and_physicstest_DistillNet(
         hparams["n_outputs"],
     )
 
-    met_a, met_p, met_d, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model = (
-        get_met_pyhsicstest(
-            filedir,
-            scalerdir,
-            trainparams["test_sample"],
-            nn_inputdata,
-            flist_inputs,
-            met_model,
-            device,
-            is_remove_padding=is_remove_padding,
-            is_min_max_scaler=is_min_max_scaler,
-            is_standard_scaler=is_standard_scaler,
-            is_dtrans=is_dtrans,
-        )
+    (
+        met_a,
+        met_p,
+        met_d,
+        met_g,
+        abc_wgts,
+        puppi_wgts,
+        distill_wgts,
+        resolution_abc,
+        resolution_puppi,
+        resolution_model,
+    ) = get_met_pyhsicstest(
+        filedir,
+        scalerdir,
+        trainparams["test_sample"],
+        nn_inputdata,
+        flist_inputs,
+        met_model,
+        device,
+        is_remove_padding=is_remove_padding,
+        is_min_max_scaler=is_min_max_scaler,
+        is_standard_scaler=is_standard_scaler,
+        is_dtrans=is_dtrans,
     )
-    make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots=is_displayplots)
+    make_resolutionplots(
+        met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots=is_displayplots
+    )
     last_bin_ratio = make_weight_histogram(
         distill_wgts,
         abc_wgts,
@@ -166,7 +187,15 @@ def do_training_and_physicstest_DistillNet(
         is_savefig=is_savefig,
         is_displayplots=is_displayplots,
     )
-    make_finalprints(resolution_model, last_bin_ratio, resolution_abc, resolution_puppi, saveinfo, flist_names, flist_inputs)
+    make_finalprints(
+        resolution_model,
+        last_bin_ratio,
+        resolution_abc,
+        resolution_puppi,
+        saveinfo,
+        flist_names,
+        flist_inputs,
+    )
     return resolution_model
 
 
@@ -175,7 +204,9 @@ def main():
     print("Device:", device)
     filedir = dirs["filedir"]
     savedir = dirs["savedir"]
-    do_training_and_physicstest_DistillNet(filedir=filedir, savedir=savedir, device=device, wgt=trainparams["weightedlossval"])
+    do_training_and_physicstest_DistillNet(
+        filedir=filedir, savedir=savedir, device=device, wgt=trainparams["weightedlossval"]
+    )
 
 
 if __name__ == "__main__":

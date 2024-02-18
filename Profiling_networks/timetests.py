@@ -18,7 +18,8 @@ parent_dir = os.path.dirname(os.path.realpath(__file__))
 # Add the parent directory to sys.path
 sys.path.append(parent_dir)
 from distillnet_setup import load_bestmodel
-from data_helpers import fl_inputs, gettraindata
+from data_helpers import fl_inputs, gettraindata, join_and_makedir
+from distillnet_config import hparams, trainparams, dirs, bool_val
 
 
 def time_forwardpass(model, dataloader, batch_size, num_eventparticles):
@@ -68,13 +69,16 @@ device = "cpu"
 minbatchsize = 0
 maxbatchsize = 19
 testsize_total = 1000000
-savedir = "/work/tbrandes/work/Delphes_samples/"  # Directory where results like plots and small files are saved
-saveinfo = (
-    "_tpart_1.40E+07__Batchs_256__numep_48_7_3_bndrop005_werr3__ensemble9__devicecuda:0__numtests10_std"  # name of specific model
-)
-filedir = "/work/tbrandes/work/data/"  # directory for input samples
+savedir = dirs["savedir"]  # Directory where results like plots and small files are saved
+saveinfo = f"trainpart_{hparams['maketrain_particles']:.2E}__Batchs_{hparams['batch_size']}__numep_{trainparams['n_epochs']}__wgt_{trainparams['weightedlossval']}"
+if bool_val["is_min_max_scaler"]:
+    saveinfo += "_minmaxscaler"
+if bool_val["is_standard_scaler"]:
+    saveinfo += "_stdscaler"
+print(saveinfo)
+filedir = dirs["filedir"]  # directory for input samples
 w_sample = "distill_wjets_emd_prl.h5"  # specific input sample
-modelsavedir = "/work/tbrandes/work/Delphes_samples/Models_v5/"
+modelsavedir = join_and_makedir(savedir, "Models/")
 
 model = load_bestmodel(
     saveinfo,
@@ -88,18 +92,24 @@ model = load_bestmodel(
 )
 
 
-feat, abc, nevents = gettraindata(filedir, w_sample, flist_inputs, filedir, Is_makeplots=False, Is_standard=True, Is_dtrans=False)
+feat, abc, nevents = gettraindata(
+    filedir, w_sample, flist_inputs, filedir, Is_makeplots=False, Is_standard=True, Is_dtrans=False
+)
 
 
 dataset_features = FeatureDataset((feat[0:testsize_total], abc[0:testsize_total]))
 
 
-batchlist = 2 ** np.arange(minbatchsize, maxbatchsize, 1)  # CHANGED TO 13 from 14 for smaller batch size test
+batchlist = 2 ** np.arange(
+    minbatchsize, maxbatchsize, 1
+)  # CHANGED TO 13 from 14 for smaller batch size test
 print(batchlist)
 times_batches = []
 times_batches_err = []
 for batch_size_scan in batchlist:
-    dataset_loader = data.DataLoader(dataset=dataset_features, shuffle=False, batch_size=int(batch_size_scan), drop_last=True)
+    dataset_loader = data.DataLoader(
+        dataset=dataset_features, shuffle=False, batch_size=int(batch_size_scan), drop_last=True
+    )
     batch_timelist = time_forwardpass(model, dataset_loader, batch_size_scan, 9000)
     batch_timelist = np.multiply(batch_timelist, 1000)  # from s to ms
     print(batch_size_scan)

@@ -1,6 +1,7 @@
 """
 Helper functions.
 """
+
 import h5py
 import os
 import torch
@@ -12,7 +13,7 @@ import vector
 import matplotlib
 from joblib import dump, load
 import pandas as pd
-
+import gc
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -21,6 +22,7 @@ class fl_inputs(Enum):
     """
     Enumeration of features of data represented by px, py, and pz 4-vectors.
     """
+
     px = 0
     py = 1
     pz = 2
@@ -43,6 +45,7 @@ class fl_inputs_eta(Enum):
     """
     Enumeration of features of data represented by eta, phi, and pt 4-vectors.
     """
+
     eta = 0
     phi = 1
     pt = 2
@@ -65,6 +68,7 @@ class fl_vecs(Enum):
     """
     Enumeration of vector components.
     """
+
     px = 0
     py = 1
     pz = 2
@@ -98,7 +102,13 @@ def join_and_makedir(parent_path: str, Folder: str):
 
 
 def make_finalprints(
-    resolution_model: float, binratio: float, resolution_abc: float, resolution_puppi: float, saveinfo: str, flist_names: list, flist_inputs: list
+    resolution_model: float,
+    binratio: float,
+    resolution_abc: float,
+    resolution_puppi: float,
+    saveinfo: str,
+    flist_names: list,
+    flist_inputs: list,
 ):
     """
     Create final information output prints after training and physics validation is complete.
@@ -113,12 +123,13 @@ def make_finalprints(
     return
 
 
-
 def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = False):
     """
     convert vector from px, py and pz to eta, phi and pt.
     """
-    vec_input = vector.array({"px": p_vec[:, 0], "py": p_vec[:, 1], "pz": p_vec[:, 2], "energy": p_vec[:, 3]})
+    vec_input = vector.array(
+        {"px": p_vec[:, 0], "py": p_vec[:, 1], "pz": p_vec[:, 2], "energy": p_vec[:, 3]}
+    )
     p_vec[:, 0], p_vec[:, 1], p_vec[:, 2] = vec_input.eta, vec_input.phi, vec_input.pt
     if is_log:
         if is_remove_padding:
@@ -145,7 +156,7 @@ def gettraindata(
     is_makeprints: bool = True,
 ):
     """
-    Get training data for DistillNet from sample .h5 file. Data is reshaped and then transformed by 
+    Get training data for DistillNet from sample .h5 file. Data is reshaped and then transformed by
     desired scaler, which is then saved for later validation purpose.
     """
     filename = os.path.join(filedir, sample)
@@ -174,7 +185,10 @@ def gettraindata(
             if is_makeprints:
                 print("Removing padded particles.....")
             padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
-            features_nopad, abc_nopad = features_reshaped[padmask_px], abc_truth_reshaped[padmask_px]
+            features_nopad, abc_nopad = (
+                features_reshaped[padmask_px],
+                abc_truth_reshaped[padmask_px],
+            )
             if is_makeprints:
                 print(f"Shape of input matrix without padding {features_nopad.shape}")
                 print(f"Shape of abc truth without padding {abc_nopad.shape}")
@@ -203,7 +217,11 @@ def gettraindata(
             if is_min_max_scaler:
                 scaler = preprocessing.MinMaxScaler()
                 scaler.fit(features_nopad)
-                dump(scaler, scalerdir + f"/min_max_scaler_feat{len(flist_inputs)}.bin", compress=True)
+                dump(
+                    scaler,
+                    scalerdir + f"/min_max_scaler_feat{len(flist_inputs)}.bin",
+                    compress=True,
+                )
                 print("Applying Min Max scaler transformation")
 
             features_std = scaler.transform(features_nopad)
@@ -214,7 +232,13 @@ def gettraindata(
             fig.suptitle("Features before transformation", fontsize="x-large")
             for j in range(0, len(featurelist[:, 0, 0])):
                 ax = plt.subplot(6, 3, j + 1)
-                ax.hist(features_nopad[:, j], label=f"{fl_inputs_eta(j).name}, var {j}", bins=20, color="b", alpha=0.5)
+                ax.hist(
+                    features_nopad[:, j],
+                    label=f"{fl_inputs_eta(j).name}, var {j}",
+                    bins=20,
+                    color="b",
+                    alpha=0.5,
+                )
                 ax.set_yscale("log")
                 ax.legend()
             plt.show()
@@ -223,7 +247,13 @@ def gettraindata(
             fig.suptitle("Features after transformation", fontsize="x-large")
             for j in range(0, len(featurelist[:, 0, 0])):
                 ax = plt.subplot(6, 3, j + 1)
-                ax.hist(features_std[:, j], label=f"{fl_inputs_eta(j).name}, var {j}", bins=20, color="b", alpha=0.5)
+                ax.hist(
+                    features_std[:, j],
+                    label=f"{fl_inputs_eta(j).name}, var {j}",
+                    bins=20,
+                    color="b",
+                    alpha=0.5,
+                )
                 ax.set_yscale("log")
                 ax.legend()
             plt.show()
@@ -324,7 +354,13 @@ def getdata_deposits(
             fig.suptitle("Features before transformation", fontsize="x-large")
             for j in range(0, len(featurelist[:, 0, 0])):
                 ax = plt.subplot(6, 3, j + 1)
-                ax.hist(features_nopad[:, j], label=f"{fl_inputs_eta(j).name}, var {j}", bins=20, color="b", alpha=0.5)
+                ax.hist(
+                    features_nopad[:, j],
+                    label=f"{fl_inputs_eta(j).name}, var {j}",
+                    bins=20,
+                    color="b",
+                    alpha=0.5,
+                )
                 ax.set_yscale("log")
                 ax.legend()
             plt.show()
@@ -333,7 +369,13 @@ def getdata_deposits(
             fig.suptitle("Features after transformation", fontsize="x-large")
             for j in range(0, len(featurelist[:, 0, 0])):
                 ax = plt.subplot(6, 3, j + 1)
-                ax.hist(features_std[:, j], label=f"{fl_inputs_eta(j).name}, var {j}", bins=20, color="b", alpha=0.5)
+                ax.hist(
+                    features_std[:, j],
+                    label=f"{fl_inputs_eta(j).name}, var {j}",
+                    bins=20,
+                    color="b",
+                    alpha=0.5,
+                )
                 ax.set_yscale("log")
                 ax.legend()
             plt.show()
@@ -356,7 +398,14 @@ def make_lossplot(
     plt.figure(figsize=(8, 7))
     # plot loss over epochs
     plt.plot(np.arange(0, len(losslist)), losslist, color="b", label="Train loss", zorder=1)
-    plt.scatter(np.arange(0, len(validationloss)), validationloss, s=10, color="r", label="Validation loss", zorder=2)
+    plt.scatter(
+        np.arange(0, len(validationloss)),
+        validationloss,
+        s=10,
+        color="r",
+        label="Validation loss",
+        zorder=2,
+    )
     _xlim, _ylim = plt.gca().get_xlim(), plt.gca().get_ylim()
     plt.minorticks_on()
 
@@ -366,8 +415,15 @@ def make_lossplot(
     plt.legend(fancybox=True, framealpha=0.8, loc="upper right", prop={"size": 20})
     sample_file_name0 = "Loss"
     if is_savefig:
-        plt.savefig(plotdir + sample_file_name0 + saveinfo + "__time_" + timestr + ".png", dpi=400, bbox_inches="tight")
-        plt.savefig(plotdir_pdf + sample_file_name0 + saveinfo + "__time_" + timestr + ".pdf", bbox_inches="tight")
+        plt.savefig(
+            plotdir + sample_file_name0 + saveinfo + "__time_" + timestr + ".png",
+            dpi=400,
+            bbox_inches="tight",
+        )
+        plt.savefig(
+            plotdir_pdf + sample_file_name0 + saveinfo + "__time_" + timestr + ".pdf",
+            bbox_inches="tight",
+        )
     if is_displayplots:
         plt.show()
     else:
@@ -497,8 +553,15 @@ def make_metplots(
     ax[0].legend(fancybox=True, framealpha=0.8, loc="best", prop={"size": 14})
     sample_file_name1 = "met_plot"
     if is_savefig:
-        plt.savefig(plotdir + sample_file_name1 + saveinfo + "__time_" + timestr + ".png", dpi=400, bbox_inches="tight")
-        plt.savefig(plotdir_pdf + sample_file_name1 + saveinfo + "__time_" + timestr + ".pdf", bbox_inches="tight")
+        plt.savefig(
+            plotdir + sample_file_name1 + saveinfo + "__time_" + timestr + ".png",
+            dpi=400,
+            bbox_inches="tight",
+        )
+        plt.savefig(
+            plotdir_pdf + sample_file_name1 + saveinfo + "__time_" + timestr + ".pdf",
+            bbox_inches="tight",
+        )
     if is_displayplots:
         plt.show()
     else:
@@ -532,11 +595,27 @@ def make_weight_histogram(
     def makehistograms(predictions, truth, puppiw):
         bins = 20
         ranges = (0, 1)
-        bin1, xb, xr = plt.hist(truth, bins=bins, range=ranges, label=f"GNN truth weights", histtype="step", lw=2)
-        bins_pup, _, _ = plt.hist(
-            puppiw, bins=bins, range=ranges, label="PUPPI weights ", histtype="step", lw=1.7, color="#ff7f0e"
+        bin1, xb, xr = plt.hist(
+            truth, bins=bins, range=ranges, label=f"GNN truth weights", histtype="step", lw=2
         )
-        bin2, _, _ = plt.hist(predictions, bins=bins, range=ranges, label=f"DistillNet weights", histtype="step", lw=2, color="g")
+        bins_pup, _, _ = plt.hist(
+            puppiw,
+            bins=bins,
+            range=ranges,
+            label="PUPPI weights ",
+            histtype="step",
+            lw=1.7,
+            color="#ff7f0e",
+        )
+        bin2, _, _ = plt.hist(
+            predictions,
+            bins=bins,
+            range=ranges,
+            label=f"DistillNet weights",
+            histtype="step",
+            lw=2,
+            color="g",
+        )
         return bin1, bin2, xb, xr
 
     plt.figure(figsize=(10, 6))
@@ -581,12 +660,24 @@ def make_weight_histogram(
     sample_file_name1 = "wgts"
     if is_savefig:
         plt.savefig(
-            plotdir + sample_file_name1 + saveinfo + sample.replace(".h5", "") + "__time_" + timestr + ".png",
+            plotdir
+            + sample_file_name1
+            + saveinfo
+            + sample.replace(".h5", "")
+            + "__time_"
+            + timestr
+            + ".png",
             dpi=400,
             bbox_inches="tight",
         )
         plt.savefig(
-            plotdir_pdf + sample_file_name1 + saveinfo + sample.replace(".h5", "") + "__time_" + timestr + ".pdf",
+            plotdir_pdf
+            + sample_file_name1
+            + saveinfo
+            + sample.replace(".h5", "")
+            + "__time_"
+            + timestr
+            + ".pdf",
             bbox_inches="tight",
         )
     if is_displayplots:
@@ -621,7 +712,6 @@ def makeratio(val_of_bins_x1, val_of_bins_x2):
     return ratio, error
 
 
-
 def resolution_response(arr):
     """
     Calculate resolution of physical quantity as difference between the 75th and 25th quantile / 2
@@ -649,7 +739,11 @@ def plot_jetresolution(
     print("responseabcres: ", resolution_response(responseabc))
     print("Distiljetres:", resolution_response(responsedistil))
     print("puppijetres:", resolution_response(responsepuppi))
-    r1, r2, r4 = resolution_response(responseabc), resolution_response(responsedistil), resolution_response(responsepuppi)
+    r1, r2, r4 = (
+        resolution_response(responseabc),
+        resolution_response(responsedistil),
+        resolution_response(responsepuppi),
+    )
 
     figure = plt.figure(figsize=(8, 7))
 
@@ -708,11 +802,19 @@ def plot_jetresolution(
     if is_savefig:
         if is_corr:
             print(f"corr mean is {np.mean(responsedistil)}")
-            plt.savefig(results_dir + f"Jet_response_corr_ptcut{ptcut}", dpi=500, bbox_inches="tight")
-            plt.savefig(results_dir_pdf + f"Jet_response_corr_ptcut{ptcut}.pdf", bbox_inches="tight")
+            plt.savefig(
+                results_dir + f"Jet_response_corr_ptcut{ptcut}", dpi=500, bbox_inches="tight"
+            )
+            plt.savefig(
+                results_dir_pdf + f"Jet_response_corr_ptcut{ptcut}.pdf", bbox_inches="tight"
+            )
         elif is_ptcorr:
-            plt.savefig(results_dir + f"Jet_response_PTcorr_ptcut{ptcut}", dpi=500, bbox_inches="tight")
-            plt.savefig(results_dir_pdf + f"Jet_response_PTcorr_ptcut{ptcut}.pdf", bbox_inches="tight")
+            plt.savefig(
+                results_dir + f"Jet_response_PTcorr_ptcut{ptcut}", dpi=500, bbox_inches="tight"
+            )
+            plt.savefig(
+                results_dir_pdf + f"Jet_response_PTcorr_ptcut{ptcut}.pdf", bbox_inches="tight"
+            )
         else:
             print(f"mean is {np.mean(responsedistil)}")
             plt.savefig(results_dir + f"Jet_response_ptcut{ptcut}", dpi=500, bbox_inches="tight")
@@ -722,7 +824,14 @@ def plot_jetresolution(
 
 
 def plot_jetenergy(
-    abcjetE, puppijetE, distiljetE, genjetE, results_dir: str, results_dir_pdf: str, ptcut: int, is_savefig: bool = True
+    abcjetE,
+    puppijetE,
+    distiljetE,
+    genjetE,
+    results_dir: str,
+    results_dir_pdf: str,
+    ptcut: int,
+    is_savefig: bool = True,
 ):
     """
     Plot jet energy for GNN, Puppi and DistillNet
@@ -734,17 +843,38 @@ def plot_jetenergy(
     xminbin = 0
     range = (xminbin, xmaxbin)
     bins_abc, xb, _ = plt.hist(
-        np.clip(abcjetE, 0, xmaxbin), bins=binsspace, histtype="step", label="Jet Energy GNN", lw=2, range=range
+        np.clip(abcjetE, 0, xmaxbin),
+        bins=binsspace,
+        histtype="step",
+        label="Jet Energy GNN",
+        lw=2,
+        range=range,
     )
     bins_puppi, xb, _ = plt.hist(
-        np.clip(puppijetE, 0, xmaxbin), bins=binsspace, histtype="step", label="Jet Energy PUPPI true", lw=2, range=range
+        np.clip(puppijetE, 0, xmaxbin),
+        bins=binsspace,
+        histtype="step",
+        label="Jet Energy PUPPI true",
+        lw=2,
+        range=range,
     )
 
     bins_distil, _, _ = plt.hist(
-        np.clip(distiljetE, 0, xmaxbin), bins=xb, histtype="step", label="Jet Energy distilNet", lw=2, range=range
+        np.clip(distiljetE, 0, xmaxbin),
+        bins=xb,
+        histtype="step",
+        label="Jet Energy distilNet",
+        lw=2,
+        range=range,
     )
     bins_gen, _, _ = plt.hist(
-        np.clip(genjetE, 0, xmaxbin), bins=xb, color="black", histtype="step", label="Jet Energy gen", lw=1, range=range
+        np.clip(genjetE, 0, xmaxbin),
+        bins=xb,
+        color="black",
+        histtype="step",
+        label="Jet Energy gen",
+        lw=1,
+        range=range,
     )
 
     _xlim, _ylim = plt.gca().get_xlim(), plt.gca().get_ylim()
@@ -782,7 +912,12 @@ def plot_jetratio(
     xminbin = 0
     range = (xminbin, xmaxbin)
     bins_abc, xb, _ = ax[0].hist(
-        np.clip(abcjetE, 0, xmaxbin), bins=binsspace, histtype="step", label=r"$E_\mathrm{Jet,\,reco}\;$ GNN", range=range, lw=1.7
+        np.clip(abcjetE, 0, xmaxbin),
+        bins=binsspace,
+        histtype="step",
+        label=r"$E_\mathrm{Jet,\,reco}\;$ GNN",
+        range=range,
+        lw=1.7,
     )
     bins_puppi, _, _ = ax[0].hist(
         np.clip(puppijetE_true, 0, xmaxbin),
@@ -848,17 +983,29 @@ def plot_jetratio(
     ax[0].yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
 
     ax[1].set_xlabel(r"Reconstruced Jet Energy $E_\mathrm{Jet,\,reco}$ in GeV")
-    ax[0].legend(fancybox=True, framealpha=0.8, loc="upper right", prop={"size": 18})  # ,bbox_to_anchor=(0.98,1))
+    ax[0].legend(
+        fancybox=True, framealpha=0.8, loc="upper right", prop={"size": 18}
+    )  # ,bbox_to_anchor=(0.98,1))
     if is_savefig:
         if is_corr:
-            plt.savefig(results_dir_pdf + f"Jet_energy_ratio_ptcut{ptcut}_corr.pdf", bbox_inches="tight")
-            plt.savefig(results_dir + f"Jet_energy_ratio_ptcut{ptcut}_corr", dpi=500, bbox_inches="tight")
+            plt.savefig(
+                results_dir_pdf + f"Jet_energy_ratio_ptcut{ptcut}_corr.pdf", bbox_inches="tight"
+            )
+            plt.savefig(
+                results_dir + f"Jet_energy_ratio_ptcut{ptcut}_corr", dpi=500, bbox_inches="tight"
+            )
         elif is_ptcorr:
-            plt.savefig(results_dir_pdf + f"Jet_energy_ratio_ptcut{ptcut}_PTcorr.pdf", bbox_inches="tight")
-            plt.savefig(results_dir + f"Jet_energy_ratio_ptcut{ptcut}_PTcorr", dpi=500, bbox_inches="tight")
+            plt.savefig(
+                results_dir_pdf + f"Jet_energy_ratio_ptcut{ptcut}_PTcorr.pdf", bbox_inches="tight"
+            )
+            plt.savefig(
+                results_dir + f"Jet_energy_ratio_ptcut{ptcut}_PTcorr", dpi=500, bbox_inches="tight"
+            )
         else:
             plt.savefig(results_dir_pdf + f"Jet_energy_ratio_ptcut{ptcut}.pdf", bbox_inches="tight")
-            plt.savefig(results_dir + f"Jet_energy_ratio_ptcut{ptcut}", dpi=500, bbox_inches="tight")
+            plt.savefig(
+                results_dir + f"Jet_energy_ratio_ptcut{ptcut}", dpi=500, bbox_inches="tight"
+            )
     plt.clf()
     return
 
@@ -896,7 +1043,9 @@ def make_depositplots(
     etabins = np.linspace(-4.7, 4.7, nbins)
     phibins = np.linspace(-3.1416, 3.1416, nbins)
 
-    H_ptweighted_puppi, xedges, yedges = np.histogram2d(etas, phis, weights=puppi_w_sub * pts, bins=(etabins, phibins))
+    H_ptweighted_puppi, xedges, yedges = np.histogram2d(
+        etas, phis, weights=puppi_w_sub * pts, bins=(etabins, phibins)
+    )
     fig, ax = plt.subplots(figsize=[16, 8])
     img = ax.imshow(
         H_ptweighted_puppi,
@@ -918,7 +1067,9 @@ def make_depositplots(
     etabins = np.linspace(-5.2, 5.2, nbins)
     phibins = np.linspace(-3.1416, 3.1416, nbins)
 
-    H_ptweighted_model, xedges, yedges = np.histogram2d(etas, phis, weights=abc_w_sub * pts, bins=(etabins, phibins))
+    H_ptweighted_model, xedges, yedges = np.histogram2d(
+        etas, phis, weights=abc_w_sub * pts, bins=(etabins, phibins)
+    )
     fig, ax = plt.subplots(figsize=[16, 8])
     img = ax.imshow(
         H_ptweighted_model,
@@ -941,7 +1092,9 @@ def make_depositplots(
     etabins = np.linspace(-5.2, 5.2, nbins)
     phibins = np.linspace(-3.1416, 3.1416, nbins)
 
-    H_ptweighted_distill, xedges, yedges = np.histogram2d(etas, phis, weights=distill_w_sub * pts, bins=(etabins, phibins))
+    H_ptweighted_distill, xedges, yedges = np.histogram2d(
+        etas, phis, weights=distill_w_sub * pts, bins=(etabins, phibins)
+    )
     fig, ax = plt.subplots(figsize=[16, 8])
     img = ax.imshow(
         H_ptweighted_distill,
@@ -967,7 +1120,11 @@ def make_depositplots(
     H_nopu, xedges, yedges = np.histogram2d(etas_nopu, phis_nopu, bins=(etabins, phibins))
     fig, ax = plt.subplots(figsize=[16, 8])
     img = ax.imshow(
-        H_nopu, interpolation="nearest", origin="lower", extent=[yedges[0], yedges[-1], xedges[0], xedges[-1]], aspect="0.65"
+        H_nopu,
+        interpolation="nearest",
+        origin="lower",
+        extent=[yedges[0], yedges[-1], xedges[0], xedges[-1]],
+        aspect="0.65",
     )
     cb = plt.colorbar(img, fraction=0.046, label="Particles")
     cb.ax.tick_params(labelsize=13)
@@ -983,7 +1140,9 @@ def make_depositplots(
     etabins = np.linspace(-5.2, 5.2, nbins)
     phibins = np.linspace(-3.1416, 3.1416, nbins)
 
-    H_ptweighted_nopu, xedges, yedges = np.histogram2d(etas_nopu, phis_nopu, weights=pts_nopu, bins=(etabins, phibins))
+    H_ptweighted_nopu, xedges, yedges = np.histogram2d(
+        etas_nopu, phis_nopu, weights=pts_nopu, bins=(etabins, phibins)
+    )
     fig, ax = plt.subplots(figsize=[16, 8])
     img = ax.imshow(
         H_ptweighted_nopu,
@@ -1054,8 +1213,12 @@ def make_depositplots(
     plt.xticks(fontsize=13)
     plt.yticks(fontsize=13)
     if is_savefig:
-        plt.savefig(plotdir_pdf + "2D_ptweighted_ratio_DistillNet_bestmodel.pdf", bbox_inches="tight")
-        plt.savefig(plotdir + "2D_ptweighted_ratio_DistillNet_bestmodel.png", dpi=400, bbox_inches="tight")
+        plt.savefig(
+            plotdir_pdf + "2D_ptweighted_ratio_DistillNet_bestmodel.pdf", bbox_inches="tight"
+        )
+        plt.savefig(
+            plotdir + "2D_ptweighted_ratio_DistillNet_bestmodel.png", dpi=400, bbox_inches="tight"
+        )
     plt.clf()
 
     etabins = np.linspace(-5.2, 5.2, nbins)
@@ -1098,7 +1261,9 @@ def derive_corrections(
     """
     print(f"Selection between{lower_bound} and {upper_bound}GeV")
 
-    selected_jet_energy_algo, mask = apply_mask_bounds(lower_bound, upper_bound, jetenergy_algorithm)
+    selected_jet_energy_algo, mask = apply_mask_bounds(
+        lower_bound, upper_bound, jetenergy_algorithm
+    )
     selected_jet_energy_gen = jetenergy_gen[mask]
     ratio = np.mean(selected_jet_energy_algo / selected_jet_energy_gen)
     return ratio
@@ -1115,17 +1280,23 @@ def derive_corrections_pt(lower_bound: int, upper_bound: int, jetpt_algo: list, 
     return ratio
 
 
-def apply_jetcorrections(corrections_intervals: list, matched_algo, gen_matched_algo, is_prints: bool = False):
+def apply_jetcorrections(
+    corrections_intervals: list, matched_algo, gen_matched_algo, is_prints: bool = False
+):
     """
     Apply derived jet energy corrections for intervals.
     """
     matched_algo_copy = matched_algo
     for lower_bound, upper_bound in corrections_intervals:
-        ratio = derive_corrections(lower_bound, upper_bound, matched_algo, gen_matched_algo, is_histoplots=False)
+        ratio = derive_corrections(
+            lower_bound, upper_bound, matched_algo, gen_matched_algo, is_histoplots=False
+        )
         if is_prints:
             print(matched_algo)
         matched_algo = np.where(
-            (matched_algo_copy >= lower_bound) & (matched_algo_copy <= upper_bound), matched_algo / ratio, matched_algo
+            (matched_algo_copy >= lower_bound) & (matched_algo_copy <= upper_bound),
+            matched_algo / ratio,
+            matched_algo,
         )
         if is_prints:
             print(matched_algo)
@@ -1150,7 +1321,9 @@ def apply_jetcorrections_pt(
         if is_prints:
             print(matched_algo)
         matched_algo = np.where(
-            (matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound), matched_algo / ratio, matched_algo
+            (matched_pt_algo_copy >= lower_bound) & (matched_pt_algo_copy <= upper_bound),
+            matched_algo / ratio,
+            matched_algo,
         )
         if is_prints:
             print(matched_algo)
@@ -1171,8 +1344,14 @@ def apply_mask_bounds(lower_bound, upper_bound, jetenergies):
     return jetenergies[combmask], combmask
 
 
-def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savefig: bool = True, is_prints: bool = False):
-
+def make_alljetplots(
+    df_jetdata_abc_puppi,
+    plotdir,
+    plotdir_pdf,
+    ptcut,
+    is_savefig: bool = True,
+    is_prints: bool = False,
+):
     """
     Create jet energy and pt plots for GNN, Puppi and DistillNet.
     """
@@ -1205,7 +1384,14 @@ def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savef
     corr_intervals.append((700, 4500))
     # CHANGED GENJETE to GENJETE_ABC
     plot_jetresolution(
-        responseabc, responsedistil, responsepuppi, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig, is_corr=False
+        responseabc,
+        responsedistil,
+        responsepuppi,
+        plotdir,
+        plotdir_pdf,
+        ptcut,
+        is_savefig=is_savefig,
+        is_corr=False,
     )
 
     distilljetE_matched_corrected, response_distill_corrected = apply_jetcorrections(
@@ -1227,14 +1413,31 @@ def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savef
         is_prints=is_prints,
     )
     abcjetE_matched_ptcorrected, responseabc_ptcorr = apply_jetcorrections_pt(
-        corr_intervals, abcjetpt_matched, genjetpt_abc_matched, abcjetE_matched, genjetE_abc_matched, is_prints=is_prints
+        corr_intervals,
+        abcjetpt_matched,
+        genjetpt_abc_matched,
+        abcjetE_matched,
+        genjetE_abc_matched,
+        is_prints=is_prints,
     )
     puppijetE_matched_ptcorrected, responsepuppi_ptcorr = apply_jetcorrections_pt(
-        corr_intervals, puppijetpt_matched, genjetpt_puppi_matched, puppijetE_matched, genjetE_puppi_matched, is_prints=is_prints
+        corr_intervals,
+        puppijetpt_matched,
+        genjetpt_puppi_matched,
+        puppijetE_matched,
+        genjetE_puppi_matched,
+        is_prints=is_prints,
     )
 
     plot_jetresolution(
-        responseabc, response_distill_corrected, responsepuppi, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig, is_corr=True
+        responseabc,
+        response_distill_corrected,
+        responsepuppi,
+        plotdir,
+        plotdir_pdf,
+        ptcut,
+        is_savefig=is_savefig,
+        is_corr=True,
     )
     plot_jetresolution(
         responseabc_ptcorr,
@@ -1247,8 +1450,26 @@ def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savef
         is_ptcorr=True,
     )
 
-    plot_jetenergy(abcjetE, puppijetE, distiljetE, genjetE_abc, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig)
-    plot_jetratio(abcjetE, puppijetE, distiljetE, plotdir, plotdir_pdf, ptcut, is_savefig=is_savefig, is_corr=False)
+    plot_jetenergy(
+        abcjetE,
+        puppijetE,
+        distiljetE,
+        genjetE_abc,
+        plotdir,
+        plotdir_pdf,
+        ptcut,
+        is_savefig=is_savefig,
+    )
+    plot_jetratio(
+        abcjetE,
+        puppijetE,
+        distiljetE,
+        plotdir,
+        plotdir_pdf,
+        ptcut,
+        is_savefig=is_savefig,
+        is_corr=False,
+    )
     plot_jetratio(
         abcjetE_matched_corrected,
         puppijetE_matched_corrected,
@@ -1272,29 +1493,37 @@ def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savef
     return
 
 
-def makescaler(filedir: str, sample: str, flist_inputs: list, Is_dtrans: bool = False, Is_remove_padding: bool = True,
-                 Is_standard: bool = True, Is_min_max_scaler: bool = False, Is_standard_scaler: bool = True, Is_makeplots: bool = False, Is_makeprints: bool= True):
+def makescaler(
+    filedir: str,
+    sample: str,
+    flist_inputs: list,
+    Is_dtrans: bool = False,
+    Is_remove_padding: bool = True,
+    Is_standard: bool = True,
+    Is_min_max_scaler: bool = False,
+    Is_standard_scaler: bool = True,
+    Is_makeplots: bool = False,
+    Is_makeprints: bool = True,
+):
     """
-    Creates new scaler in case this script is executed on a different machine then training 
+    Creates new scaler in case this script is executed on a different machine then training
     -> .pkl scaler from training might not work anymore on different OS version
     """
     filename = os.path.join(filedir, sample)
     if Is_makeprints:
-        print(f'Accessing {filename} for training DistillNet')
+        print(f"Accessing {filename} for training DistillNet")
 
     with h5py.File(filename, "r") as f:
         if Is_makeprints:
             print(f.keys())
         featurelist = f["distill_inputs_default"][flist_inputs, :, :]
 
-
-
         n_features, n_events, n_particles = featurelist.shape
         features_reshaped = featurelist.reshape(n_features, -1).T
         del featurelist
         gc.collect()
         if Is_makeprints:
-            print(f'Shape of input matrix with padding {features_reshaped.shape}')
+            print(f"Shape of input matrix with padding {features_reshaped.shape}")
 
         if Is_remove_padding:
             if Is_makeprints:
@@ -1304,12 +1533,12 @@ def makescaler(filedir: str, sample: str, flist_inputs: list, Is_dtrans: bool = 
             del features_reshaped
             gc.collect()
             if Is_makeprints:
-                print(f'Shape of input matrix without padding {features_nopad.shape}')
+                print(f"Shape of input matrix without padding {features_nopad.shape}")
         else:
             print("No padding removal")
             features_nopad = features_reshaped
-            print(f'Shape of input matrix with padding {features_nopad.shape}')
-    
+            print(f"Shape of input matrix with padding {features_nopad.shape}")
+
         convertvec_etaphipt(features_nopad, Is_log=True, Is_remove_padding=Is_remove_padding)
         if Is_dtrans:
             if Is_makeprints:
@@ -1323,7 +1552,7 @@ def makescaler(filedir: str, sample: str, flist_inputs: list, Is_dtrans: bool = 
             if Is_standard_scaler:
                 scaler = preprocessing.StandardScaler()
                 scaler.fit(features_nopad)
-                #dump(scaler, "./std_scaler.bin", compress=True)
+                # dump(scaler, "./std_scaler.bin", compress=True)
                 del features_nopad
                 gc.collect()
                 return scaler

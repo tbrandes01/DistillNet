@@ -1,6 +1,7 @@
 """
 This script contains functions for calculing the Missing Transverse Energy (MET) as event-based quantity.
 """
+
 import torch.utils.data as data
 import h5py
 import os
@@ -8,10 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 from joblib import load
-from data_helpers import convertvec_etaphipt 
+from data_helpers import convertvec_etaphipt
 from distillnet_setup import modelpredictions, FeatureDataset
 from distillnet_config import hparams, trainparams
 from tqdm import tqdm
+
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -28,12 +30,12 @@ def resolution(arr, gen):
 
 def genfunc(arr, gen):
     """
-    Calculate response function as (reconstructed - generated) / generated 
+    Calculate response function as (reconstructed - generated) / generated
     """
     return (np.array(arr) - np.array(gen)) / np.array(gen)
 
 
-def makevec(pt, phi):  
+def makevec(pt, phi):
     """
     Create a vector using polar coordinates
     """
@@ -42,7 +44,7 @@ def makevec(pt, phi):
     return x, y
 
 
-def makevec_vers2(pt, phi):  
+def makevec_vers2(pt, phi):
     """
     Create a vector using polar coordinates, different syntax
     """
@@ -101,7 +103,7 @@ def get_mets(
     """
     Calculate MET for an event from given sample for the GNN, Puppi and DistillNet.\n
     The number of particles per event varies as zero-padded particles are removed by default.
-    Dtrans refers to clipping the d0 and dZ input variable to the range between -1 and 1 to 
+    Dtrans refers to clipping the d0 and dZ input variable to the range between -1 and 1 to
     potentially aid the scaler in scaling the inputs more efficiently with the missing d0 and dZ outliers.\n
     """
     filename = os.path.join(filedir, sample)
@@ -181,20 +183,43 @@ def get_mets(
         return predictions, abcw_np, puppiw_np, met_distillnet, met_abc, met_puppi, met_gen
 
 
-def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata: tuple, flist_inputs: list, met_model, device: str, is_remove_padding: bool, is_min_max_scaler: bool, is_standard_scaler: bool, is_dtrans: bool):
+def get_met_pyhsicstest(
+    filedir: str,
+    scalerdir: str,
+    sample: str,
+    nn_inputdata: tuple,
+    flist_inputs: list,
+    met_model,
+    device: str,
+    is_remove_padding: bool,
+    is_min_max_scaler: bool,
+    is_standard_scaler: bool,
+    is_dtrans: bool,
+):
     """
     Loop over all events in test dataset to calculate the per-event MET for GNN, Puppi and DistillNet.\n
     Returned are the METs, per-particle pt-rescaling weights and resulting MET resolutions of the three respective algorithms.
     """
-    
+
     distill_wgts, abc_wgts, puppi_wgts, met_d, met_a, met_p, met_g = [], [], [], [], [], [], []
     maxevent = int(nn_inputdata[3])
-    print('Training complete, calcluating MET....')
-    minevent = int(hparams['maketrain_particles'] / 9000)
-    print('Toal Number of evaluated events:' , np.abs(maxevent - minevent))
+    print("Training complete, calcluating MET....")
+    minevent = int(hparams["maketrain_particles"] / 9000)
+    print("Toal Number of evaluated events:", np.abs(maxevent - minevent))
     for i in tqdm(range(minevent, maxevent)):
-        pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(filedir, scalerdir, sample, flist_inputs, met_model, device, i, is_remove_padding=is_remove_padding,
-                                                                        is_min_max_scaler=is_min_max_scaler, is_standard_scaler=is_standard_scaler, is_dtrans=is_dtrans)
+        pred, abc, puppi, met_distill, met_abc, met_puppi, met_gen = get_mets(
+            filedir,
+            scalerdir,
+            sample,
+            flist_inputs,
+            met_model,
+            device,
+            i,
+            is_remove_padding=is_remove_padding,
+            is_min_max_scaler=is_min_max_scaler,
+            is_standard_scaler=is_standard_scaler,
+            is_dtrans=is_dtrans,
+        )
         distill_wgts.append(pred)
         abc_wgts.append(abc)
         puppi_wgts.append(puppi)
@@ -203,11 +228,28 @@ def get_met_pyhsicstest(filedir: str, scalerdir: str, sample: str, nn_inputdata:
         met_p.append(met_puppi)
         met_g.append(met_gen)
 
-    resolution_model, resolution_abc, resolution_puppi = resolution(met_d, met_g), resolution(met_a, met_g), resolution(met_p, met_g)
-    return met_a, met_p, met_d, met_g, abc_wgts, puppi_wgts, distill_wgts, resolution_abc, resolution_puppi, resolution_model
+    resolution_model, resolution_abc, resolution_puppi = (
+        resolution(met_d, met_g),
+        resolution(met_a, met_g),
+        resolution(met_p, met_g),
+    )
+    return (
+        met_a,
+        met_p,
+        met_d,
+        met_g,
+        abc_wgts,
+        puppi_wgts,
+        distill_wgts,
+        resolution_abc,
+        resolution_puppi,
+        resolution_model,
+    )
 
 
-def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False):
+def make_resolutionplots(
+    met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False
+):
     """
     Create MET resolution plots for GNN, Puppi and DistillNet
     """
@@ -218,7 +260,8 @@ def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr,
         np.clip(genfunc(met_a, met_g), binsspace[0], binsspace[-1]),
         bins=binsspace,
         histtype="step",
-        label=r"$E_\mathrm{T}^{\mathrm{miss}}$" + f" ABCNet\nResolution: {resolution(met_a,met_g):.4f}",
+        label=r"$E_\mathrm{T}^{\mathrm{miss}}$"
+        + f" ABCNet\nResolution: {resolution(met_a,met_g):.4f}",
         range=ranges,
         lw=3,
     )
@@ -226,7 +269,8 @@ def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr,
         np.clip(genfunc(met_p, met_g), binsspace[0], binsspace[-1]),
         bins=binsspace,
         histtype="step",
-        label=r"$E_\mathrm{T}^{\mathrm{miss}}$" + f" Puppi\nResolution: {resolution(met_p,met_g):.4f}",
+        label=r"$E_\mathrm{T}^{\mathrm{miss}}$"
+        + f" Puppi\nResolution: {resolution(met_p,met_g):.4f}",
         range=ranges,
         lw=3,
     )
@@ -234,14 +278,17 @@ def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr,
         np.clip(genfunc(met_d, met_g), binsspace[0], binsspace[-1]),
         bins=binsspace,
         histtype="step",
-        label=r"$E_\mathrm{T}^{\mathrm{miss}}$" + f" DistillNet\nResolution: {resolution(met_d,met_g):.4f}",
+        label=r"$E_\mathrm{T}^{\mathrm{miss}}$"
+        + f" DistillNet\nResolution: {resolution(met_d,met_g):.4f}",
         range=ranges,
         lw=3,
     )
 
     plt.legend(fancybox=True, framealpha=0.8, loc="best", prop={"size": 18})
 
-    plt.xlabel(r"$(E_\mathrm{T}^{\mathrm{miss}}-E_\mathrm{T}^{\mathrm{miss,\,gen}})\;/\;E_\mathrm{T}^{\mathrm{miss,\,gen}}$")
+    plt.xlabel(
+        r"$(E_\mathrm{T}^{\mathrm{miss}}-E_\mathrm{T}^{\mathrm{miss,\,gen}})\;/\;E_\mathrm{T}^{\mathrm{miss,\,gen}}$"
+    )
 
     plt.minorticks_on()
 
@@ -251,7 +298,11 @@ def make_resolutionplots(met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr,
     plt.xlim(ranges)
     plt.ylim(*_ylim)
 
-    plt.savefig(plotdir + "response_smaller" + saveinfo + "__time_" + timestr + ".png", dpi=500, bbox_inches="tight")
+    plt.savefig(
+        plotdir + "response_smaller" + saveinfo + "__time_" + timestr + ".png",
+        dpi=500,
+        bbox_inches="tight",
+    )
     if is_displayplots:
         plt.show()
     else:
