@@ -12,8 +12,8 @@ import numpy as np
 import os
 import pandas as pd
 from distillnet_setup import load_bestmodel
-from distillnet_config import hparams, fl_inputs, bool_val, dirs
-from data_helpers import makescaler, join_and_makedir
+from distillnet_config import hparams, bool_val, dirs, trainparams
+from data_helpers import makescaler, join_and_makedir, fl_inputs
 from tqdm import tqdm
 import time
 import argparse
@@ -28,15 +28,9 @@ parser.add_argument("--max_event", type=int, help="Max_event for jet clustering"
 parser.add_argument("--sample", type=str, help="Sample processed, options are wjets or ttbar")
 parser.add_argument("--ptcut", type=int, help="Applied cut on pt values", default=15)
 parser.add_argument(
-    "--is_abc", action="store_true", help="Perform ABC and PUPPI clustering (default: True)"
+    "--is_abc", action="store_false", help="Perform ABC and PUPPI clustering (default: False)"
 )
-parser.add_argument(
-    "--no-is_abc",
-    dest="is_abc",
-    action="store_false",
-    help="Do not perform ABC and PUPPI clustering",
-)
-parser.set_defaults(is_abc=True)
+parser.set_defaults(is_abc=False)
 parser.add_argument(
     "--is_return_all",
     action="store_true",
@@ -199,7 +193,6 @@ if is_abc_puppi:
             dR,
             ptcut,
             scaler,
-            is_standard=True,
             is_remove_padding=True,
             is_abc_puppi=True,
         )
@@ -288,7 +281,6 @@ elif is_return_all:
             dR,
             ptcut,
             scaler,
-            is_standard=True,
             is_remove_padding=True,
             is_abc_puppi=False,
             is_return_all=True,
@@ -384,7 +376,6 @@ else:
             dR,
             ptcut,
             scaler,
-            is_standard=True,
             is_remove_padding=True,
             is_abc_puppi=False,
         )
