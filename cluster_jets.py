@@ -84,7 +84,11 @@ flist_inputs = [member.value for member in fl_inputs]
 
 if is_abc_puppi:
     dir_saveinoabc = (
-        f"Jetclustering_ptcut{ptcut}_ptmatch/Abc_puppi__" + sample.replace(".h5", "") + "/"
+        f"Jetclustering_ptcut{ptcut}_ptmatch/Abc_puppi__"
+        + saveinfo
+        + "__"
+        + sample.replace(".h5", "")
+        + "/"
     )
     results_dir = os.path.join(savedir, dir_saveinoabc)
     if not os.path.isdir(results_dir):
