@@ -1,5 +1,5 @@
 """
-Top-level training and inital validation script for DistillNet. After selecting hyperparameters in the config file, execute this script for training.
+Top-level training and inital testing script for DistillNet. After selecting hyperparameters in the config file, execute this script for training.
 """
 
 import torch
@@ -109,10 +109,8 @@ def do_training_and_physicstest_DistillNet(
         is_weighted_error=is_weighted_error,
     )
 
-
-    make_lossplot(
-        losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots
-    )
+    make_lossplot(losslist, validationloss, plotdir, plotdir_pdf, saveinfo, timestr, is_savefig=is_savefig, is_displayplots=is_displayplots)
+    
     met_model = load_bestmodel(
         saveinfo,
         modelsavedir,

@@ -3,7 +3,7 @@ Distillnet config dictionaries. Please add filedir and savedir for own use. The 
 """
 hparams = {
     "batch_size": 256,  # Batch size
-    "maketrain_particles": 1.4e6,  # Particles utlized for training
+    "maketrain_particles": 8e6,  # Particles utlized for training
     'train_split': 0.75, #training-validation data split; train split is percentage used for training
     "L1_hsize": 128,  # Size Hidden Layer 1
     "L2_hsize": 64,  # Size Hidden Layer 2
@@ -12,7 +12,7 @@ hparams = {
 }
 
 trainparams = {
-    "n_epochs": 2,
+    "n_epochs": 3,
     "patience": 5,
     "best_loss": 0.17,
     "weightedlossval": 3,  # Weight of Weighted MAE Loss

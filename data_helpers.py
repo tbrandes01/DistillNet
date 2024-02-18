@@ -1270,3 +1270,60 @@ def make_alljetplots(df_jetdata_abc_puppi, plotdir, plotdir_pdf, ptcut, is_savef
         is_ptcorr=True,
     )
     return
+
+
+def makescaler(filedir: str, sample: str, flist_inputs: list, Is_dtrans: bool = False, Is_remove_padding: bool = True,
+                 Is_standard: bool = True, Is_min_max_scaler: bool = False, Is_standard_scaler: bool = True, Is_makeplots: bool = False, Is_makeprints: bool= True):
+    """
+    Creates new scaler in case this script is executed on a different machine then training 
+    -> .pkl scaler from training might not work anymore on different OS version
+    """
+    filename = os.path.join(filedir, sample)
+    if Is_makeprints:
+        print(f'Accessing {filename} for training DistillNet')
+
+    with h5py.File(filename, "r") as f:
+        if Is_makeprints:
+            print(f.keys())
+        featurelist = f["distill_inputs_default"][flist_inputs, :, :]
+
+
+
+        n_features, n_events, n_particles = featurelist.shape
+        features_reshaped = featurelist.reshape(n_features, -1).T
+        del featurelist
+        gc.collect()
+        if Is_makeprints:
+            print(f'Shape of input matrix with padding {features_reshaped.shape}')
+
+        if Is_remove_padding:
+            if Is_makeprints:
+                print("Removing padded particles.....")
+            padmask_px = np.abs(features_reshaped[:, 0]) > 0.000001
+            features_nopad = features_reshaped[padmask_px]
+            del features_reshaped
+            gc.collect()
+            if Is_makeprints:
+                print(f'Shape of input matrix without padding {features_nopad.shape}')
+        else:
+            print("No padding removal")
+            features_nopad = features_reshaped
+            print(f'Shape of input matrix with padding {features_nopad.shape}')
+    
+        convertvec_etaphipt(features_nopad, Is_log=True, Is_remove_padding=Is_remove_padding)
+        if Is_dtrans:
+            if Is_makeprints:
+                print("Transforming d0 and dz ")
+            features_nopad[:, 4][np.where(features_nopad[:, 4] >= 1)] = 1
+            features_nopad[:, 5][np.where(features_nopad[:, 5] >= 1)] = 1
+            features_nopad[:, 4][np.where(features_nopad[:, 4] <= -1)] = -1
+            features_nopad[:, 5][np.where(features_nopad[:, 5] <= -1)] = -1
+
+        if Is_standard:
+            if Is_standard_scaler:
+                scaler = preprocessing.StandardScaler()
+                scaler.fit(features_nopad)
+                #dump(scaler, "./std_scaler.bin", compress=True)
+                del features_nopad
+                gc.collect()
+                return scaler
