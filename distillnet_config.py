@@ -16,13 +16,13 @@ trainparams = {
     "patience": 5,
     "best_loss": 0.17,
     "weightedlossval": 3,  # Weight of Weighted MAE Loss
-    "train_sample": "distill_wjets_emd_prl.h5",  # sample for training distill_wjets_swd.h5
-    "test_sample": "distill_ttbar_emd_prl.h5",  # sample for testing distill_ttbar_swd.h5
+    "train_sample": "distill_wjets_swd.h5",  # sample for training distill_wjets_swd.h5
+    "test_sample": "distill_ttbar_swd.h5",  # sample for testing distill_ttbar_swd.h5
     "bestmodel_losstype": "bestmodel_trainloss",  # choose whether to calculate physics results on bestmodel_trainloss or bestmodel_valloss
 }
 
 
-dirs = {"filedir": "/work/tbrandes/work/data/", "savedir": "/work/tbrandes/delme/"}
+dirs = {"filedir": "/downloads/", "savedir": "./Results"}
 
 bool_val = {
     "is_displayplots": False,  # works depending on GUI, recommended is leaving this False and examining the saved figures
