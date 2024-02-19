@@ -16,8 +16,8 @@ trainparams = {
     "patience": 5,
     "best_loss": 0.17,
     "weightedlossval": 3,  # Weight of Weighted MAE Loss
-    "train_sample": "distill_wjets_swd.h5",  # sample for training distill_wjets_swd.h5
-    "test_sample": "distill_ttbar_swd.h5",  # sample for testing distill_ttbar_swd.h5
+    "train_sample": "distill_train_wjets_swd.h5",  # sample for training distill_wjets_swd.h5
+    "test_sample": "distill_test_ttbar_swd.h5",  # sample for testing distill_ttbar_swd.h5
     "bestmodel_losstype": "bestmodel_trainloss",  # choose whether to calculate physics results on bestmodel_trainloss or bestmodel_valloss
 }
 
