@@ -5,7 +5,7 @@ Control script for running DistillNet ensemble test.
 import torch
 from tqdm import tqdm
 import numpy as np
-from train_distillnet_ens_v2 import do_training_and_physicstest_DistillNet
+from train_distillnet import do_training_and_physicstest_DistillNet
 from tap import Tap
 from distillnet_config import dirs
 
