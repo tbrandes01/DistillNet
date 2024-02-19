@@ -102,7 +102,7 @@ dataset_features = FeatureDataset((feat[0:testsize_total], abc[0:testsize_total]
 
 batchlist = 2 ** np.arange(
     minbatchsize, maxbatchsize, 1
-)  # CHANGED TO 13 from 14 for smaller batch size test
+)  
 print(batchlist)
 times_batches = []
 times_batches_err = []
