@@ -6,11 +6,12 @@ import torch.utils.data as data
 import fastjet
 import pandas as pd
 import gc
+from typing import Tuple, List
 from data_helpers import convertvec_etaphipt
 from distillnet_setup import FeatureDataset, modelpredictions
 
 
-def vec3d(pt, phi, eta):
+def vec3d(pt: list, phi: list, eta: list):
     """
     Create px,py and pz vector from eta, phi and pt.
     """
@@ -20,7 +21,7 @@ def vec3d(pt, phi, eta):
     return px, py, pz
 
 
-def Jetmatching(dRcrit, pslistjet1, pslistjet2, JetE1, JetE2, Jetpt1, Jetpt2):
+def Jetmatching(dRcrit: float, pslistjet1: list, pslistjet2: list, JetE1: list, JetE2: list, Jetpt1: list, Jetpt2: list):
     """
     Match 2 lists of jets based on dR criteria.
     """
@@ -285,7 +286,7 @@ def JetEvent(
                 )
 
 
-def Jetcalc(features, weights, ptcut):
+def Jetcalc(features: Tuple[list, ...], weights: list, ptcut: float) -> Tuple[list, list, list]:
     """
     Performs jet clustering and returns energy sorted pseudojet array, sorted energies and respective pt to sorted energies.
     """
@@ -323,14 +324,14 @@ def Jetcalc(features, weights, ptcut):
     )  # returns list of pseudojets sorted by energy, list of energies and list of pt's from sorted energies
 
 
-def resolution(arr):
+def resolution(arr: list) -> float:
     q_75_abc = np.quantile(arr, 0.75)
     q_25_abc = np.quantile(arr, 0.25)
     resolutions = (q_75_abc - q_25_abc) / 2
     return resolutions
 
 
-def corinputs(dataframe, index):
+def corinputs(dataframe: pd.DataFrame, index: int) -> pd.DataFrame:
     npdf = dataframe.to_numpy()
     npdf = np.delete(npdf[index], 0)
     npdf = npdf[~pd.isnull(npdf)]

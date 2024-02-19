@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 from joblib import load
+from tqdm import tqdm
+from typing import Tuple, List
 from data_helpers import convertvec_etaphipt
 from distillnet_setup import modelpredictions, FeatureDataset
 from distillnet_config import hparams, trainparams
-from tqdm import tqdm
-
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -99,7 +99,7 @@ def get_mets(
     is_standard_scaler: bool = False,
     is_dtrans: bool = False,
     is_makeprints: bool = False,
-):
+) -> Tuple[list, list, list, float, float, float, float]:
     """
     Calculate MET for an event from given sample for the GNN, Puppi and DistillNet.\n
     The number of particles per event varies as zero-padded particles are removed by default.
