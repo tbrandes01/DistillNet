@@ -59,7 +59,7 @@ class FeatureDataset(Dataset):  # create Dataset object for Dataloader to iterat
 
 
 flist_inputs = [member.value for member in fl_inputs]
-
+torch.set_num_threads(1)
 device = "cpu"
 minbatchsize = 0
 maxbatchsize = 19
