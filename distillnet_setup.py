@@ -114,7 +114,7 @@ def load_bestmodel(
     hidden_size_l1: int,
     hidden_size_l2: int,
     num_classes: int,
-):
+) -> Union[DistillNet, nn.Module]:
     """
     Load best model from saved models directory, either best training or best validation loss.
     """
@@ -135,9 +135,22 @@ def nn_setup(
     l1_hsize: int,
     l2_hsize: int,
     n_outputs: int,
-):
+) -> tuple[DistillNet, Any, torch.optim.Optimizer, data.DataLoader, data.DataLoader, list, int]:
     """
-    Setup Distillnet for training, initalize dataloaders, model, loss and optimizer.
+    Setup Distillnet for training, initialize dataloaders, model, loss and optimizer.
+
+    Args:
+        data (tuple[list, list, int, int]): A tuple containing the training and testing data, input size, and test flag.
+        device (str): The device to use for training (e.g., 'cpu', 'cuda').
+        batch_size (int): The batch size for training.
+        maketrain_particles (int): The number of particles to use for training.
+        trainsplit (float): The ratio of training data to total data.
+        l1_hsize (int): The size of the first hidden layer in the model.
+        l2_hsize (int): The size of the second hidden layer in the model.
+        n_outputs (int): The number of output units in the model.
+
+    Returns:
+        tuple: A tuple containing the model, criterion, optimizer, train_loader, test_loader, test, and input_size.
     """
     train_loader, test_loader, input_size, test = makedataloaders(
         data, trainsplit, batch_size, maketrain_particles
@@ -154,9 +167,17 @@ def nn_setup(
     return model, criterion, optimizer, train_loader, test_loader, test, input_size
 
 
-def calc_datasetweights(truth: list, is_makeprints: bool = False):
+def calc_datasetweights(truth: list, is_makeprints: bool = False) -> float:
     """
     Calculate weights for class imbalance.
+
+    Args:
+        truth (list): A list of truth values.
+        is_makeprints (bool, optional): Flag to indicate whether to print intermediate values. Defaults to False.
+
+    Returns:
+        float: The weight for high values.
+
     """
     count_between_0_and_0_05 = np.sum((truth >= 0) & (truth <= 0.05))
     count_between_0_95_and_1 = np.sum((truth >= 0.95) & (truth <= 1))
@@ -172,9 +193,20 @@ def calc_datasetweights(truth: list, is_makeprints: bool = False):
 
 def makedataloaders(
     dat: Tuple[list, list, int, int], trainsplit: float, batch_size: int, num_particles: int
-):
+) -> Tuple[data.DataLoader, data.DataLoader, int, list]:
     """
-    Create pytorch dataloaders based on training and testing split.
+    Create train and test data loaders for a given dataset.
+
+    Args:
+        dat (Tuple[list, list, int, int]): The input dataset, consisting of features and labels.
+        trainsplit (float): The ratio of data to be used for training.
+        batch_size (int): The batch size for the data loaders.
+        num_particles (int): The total number of particles in the dataset.
+
+    Returns:
+        Tuple[data.DataLoader, data.DataLoader, int, list]: A tuple containing the train data loader,
+        test data loader, input size, and test dataset.
+
     """
     Particles, nfeatures = len(dat[0]), len(dat[0][0])
     num_particles = int(num_particles)
@@ -217,6 +249,17 @@ def validation(
 ):
     """
     Calculate validation loss per epoch for model.
+
+    Args:
+        model (Union[DistillNet, nn.Module]): The model to evaluate.
+        device (str): The device to run the evaluation on.
+        valid_loader: The data loader for the validation dataset.
+        loss_function: The loss function to calculate the loss.
+        weights_highval (int): The weight to assign to high-value labels.
+        is_weighted_error (bool, optional): Whether to use weighted error calculation. Defaults to False.
+
+    Returns:
+        float: The average validation loss per epoch.
     """
     model.eval()
     loss_total = 0
@@ -254,10 +297,29 @@ def do_training(
     is_earlystopping: bool = True,
     is_dotaylor: bool = False,
     is_weighted_error: bool = False,
-):
+) -> Tuple[Union[DistillNet, nn.Module], List[float], List[float]]:
     """
-    DistillNet training loop. If is weighted error is true, utilizes Weighted MAE as loss.
-    Early stopping after validation loss does not decrease for "patience" (trainparameter) epochs.
+    Trains the DistillNet model.
+
+    Args:
+        model (Union[DistillNet, nn.Module]): The model to be trained.
+        criterion: The loss function.
+        optimizer: The optimizer for updating the model's parameters.
+        device (str): The device to be used for training (e.g., 'cpu', 'cuda').
+        train_loader: The data loader for the training dataset.
+        test_loader: The data loader for the test dataset.
+        test (list): The test dataset.
+        savedir (str): The directory to save the training results.
+        modelsavedir (str): The directory to save the trained model.
+        saveinfo (str): Additional information to be included in the saved model's filename.
+        weights_highval (float): The weight for high-value samples in the loss calculation.
+        num_epochs (int): The number of training epochs.
+        is_earlystopping (bool, optional): Whether to use early stopping based on validation loss. Defaults to True.
+        is_dotaylor (bool, optional): Whether to perform Taylor analysis. Defaults to False.
+        is_weighted_error (bool, optional): Whether to use weighted MAE as the loss function. Defaults to False.
+
+    Returns:
+        Tuple: A tuple containing the trained model, training loss list, and validation loss list.
     """
     num_epochs = int(num_epochs)
     examples = iter(train_loader)  # test if dataloader produces desired output
@@ -414,7 +476,7 @@ def do_training(
         return model, losslist, validationloss
 
 
-def modelpredictions(model: Union[DistillNet, nn.Module], dataloader, batch_size: int, device: str):
+def modelpredictions(model: Union[DistillNet, nn.Module], dataloader, batch_size: int, device: str) -> np.ndarray:
     """
     Make DistillNet weight predictions for input dataloader.
     """
@@ -429,7 +491,7 @@ def modelpredictions(model: Union[DistillNet, nn.Module], dataloader, batch_size
     return op
 
 
-def modelpredictions_complete(model: Union[DistillNet, nn.Module], dataloader, device: str):
+def modelpredictions_complete(model: Union[DistillNet, nn.Module], dataloader, device: str) -> np.ndarray:
     model.to(device)
     model.eval()
     with torch.no_grad():
