@@ -13,7 +13,7 @@ To use DistillNet, follow these steps:
    pip install -r requirements.txt
    pip install git+https://github.com/lsowa/tayloranalysis.git
     ```
-3. **Configuration**: Modify the configuration file (distillnet_config.py) to set the desired filepaths for the downloaded dataset ([link to dataset](https://doi.org/10.5281/zenodo.10670183)) as wellas the results and other parameters.
+3. **Configuration**: Modify the configuration file (distillnet_config.py) to set the desired filepaths for the downloaded dataset ([link to dataset](https://doi.org/10.5281/zenodo.10670183)), as well as the results, and other parameters.
 
 4. **Training**: Execute the train_distillnet.py script to train the DistillNet model using the downloaded dataset.
 
