@@ -8,6 +8,7 @@ import numpy as np
 from train_distillnet import do_training_and_physicstest_DistillNet
 from tap import Tap
 from distillnet_config import dirs
+from typing import Tuple, List
 
 
 class Argparser(Tap):
@@ -26,7 +27,7 @@ class Argparser(Tap):
     step: float = 6
 
 
-def getresolutions(device, args):
+def getresolutions(device: str, args: Argparser) -> Tuple[list, ...]:
     """
     Runs ensemble test based on input args and return list of DistillNet MET resolutions.
     """
@@ -44,7 +45,7 @@ def getresolutions(device, args):
     return resolutions
 
 
-def makeprints(array, args):
+def makeprints(array: Tuple[list, ...], args: Argparser) -> None:
     print("Results for DistillNet ensemble")
     for wgtlist, idx in enumerate(array):
         wlist = np.arange(args.wmin, args.wmax, args.step)

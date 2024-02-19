@@ -2,7 +2,6 @@
 Top-level training and inital testing script for DistillNet. After selecting 
 hyperparameters in the config file, execute this script for training.
 """
-
 import torch
 import time
 from data_helpers import (
