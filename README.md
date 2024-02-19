@@ -17,6 +17,7 @@ To use DistillNet, follow these steps:
 
 4. **Training**: Execute the train_distillnet.py script to train the DistillNet model using the downloaded dataset.
 
+5. **Results**: The training script automatically tests the model on Missing Transverse Energy performance after training, which can be found in the Results directory. For jet clustering, the script cluster_jets.py can be executed. 
 
 #### Taylor Analysis Module
 For further analysis, you can utilize the Taylor Analysis Module available at from [GitHub](https://github.com/lsowa/tayloranalysis). This module assists in understanding the importance of input features for the neural network's output.
