@@ -14,6 +14,7 @@ import matplotlib
 from joblib import dump, load
 import pandas as pd
 import gc
+from typing import Union, Tuple, List
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -76,7 +77,7 @@ class fl_vecs(Enum):
     wgt = 4
 
 
-def makelog(arr):
+def makelog(arr: list) -> np.ndarray:
     """
     Helper function to get logarithm of array while avoiding taking the log of 0.
     """
@@ -84,14 +85,14 @@ def makelog(arr):
     return np.log(arr)
 
 
-def calcresponse(arr, genarr):
+def calcresponse(arr: list, genarr: list) -> np.ndarray: 
     """
     Calculate response of an array.
     """
     return (np.array(arr) - np.array(genarr)) / np.array(genarr)
 
 
-def join_and_makedir(parent_path: str, Folder: str):
+def join_and_makedir(parent_path: str, Folder: str) -> str:
     """
     Join directory strings and create a new directory if it doesn't exist yet.
     """
@@ -109,7 +110,7 @@ def make_finalprints(
     saveinfo: str,
     flist_names: list,
     flist_inputs: list,
-):
+) -> None:
     """
     Create final information output prints after training and physics validation is complete.
     """
@@ -120,10 +121,10 @@ def make_finalprints(
     print("Saveinfo:", saveinfo)
     print("Inputs used for training:", flist_names)
     print("Total number of inputs:", len(flist_inputs))
-    return
+    
 
 
-def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = False):
+def convertvec_etaphipt(p_vec: Tuple[list, list, list, list] , is_log: bool = False, is_remove_padding: bool = False) -> None:
     """
     convert vector from px, py and pz to eta, phi and pt.
     """
@@ -134,11 +135,11 @@ def convertvec_etaphipt(p_vec, is_log: bool = False, is_remove_padding: bool = F
     if is_log:
         if is_remove_padding:
             p_vec[:, 2], p_vec[:, 3] = np.log(p_vec[:, 2]), np.log(p_vec[:, 3])
-            return
+            return None
         else:
             p_vec[:, 2], p_vec[:, 3] = makelog(p_vec[:, 2]), makelog(p_vec[:, 3])
-            return
-    return
+            return None
+    return None
 
 
 def gettraindata(
@@ -154,7 +155,7 @@ def gettraindata(
     is_standard_scaler: bool = True,
     is_makeplots: bool = False,
     is_makeprints: bool = True,
-):
+) -> Tuple[list, list, int, int]:
     """
     Get training data for DistillNet from sample .h5 file. Data is reshaped and then transformed by
     desired scaler, which is then saved for later validation purpose.
@@ -432,7 +433,7 @@ def make_lossplot(
     return
 
 
-def do_weightpred(test_loader, model, device):
+def do_weightpred(test_loader, model, device: str):
     """
     Calculate DistillNet weight predictions for a given model and input dataloader.
     """
@@ -571,20 +572,20 @@ def make_metplots(
 
 
 def make_weight_histogram(
-    predictions,
-    truth,
-    puppiw,
-    res_model,
-    res_abc,
-    res_puppi,
-    plotdir,
-    plotdir_pdf,
-    saveinfo,
-    timestr,
-    sample,
+    predictions: list,
+    truth: list,
+    puppiw: list,
+    res_model: float,
+    res_abc: float,
+    res_puppi: float,
+    plotdir: str,
+    plotdir_pdf: str,
+    saveinfo: str,
+    timestr: str,
+    sample: str,
     is_savefig: bool = True,
     is_displayplots: bool = False,
-):
+) -> float:
     """
     Create overall weight distribution plot for GNN, Puppi and DistillNet.
     """
@@ -688,7 +689,7 @@ def make_weight_histogram(
     return ratiolast
 
 
-def corinputs(dataframe, index):
+def corinputs(dataframe: pd.DataFrame, index: int) -> pd.DataFrame:
     """
     Helper function to handle NaN entries from Pd dataframe
     """
@@ -698,7 +699,7 @@ def corinputs(dataframe, index):
     return npdf
 
 
-def makeratio(val_of_bins_x1, val_of_bins_x2):
+def makeratio(val_of_bins_x1: int, val_of_bins_x2: int) -> Tuple[float, float]:
     """
     Get ratio of 2 bins as well as associated poisson error.
     """
@@ -712,7 +713,7 @@ def makeratio(val_of_bins_x1, val_of_bins_x2):
     return ratio, error
 
 
-def resolution_response(arr):
+def resolution_response(arr: list) -> float:
     """
     Calculate resolution of physical quantity as difference between the 75th and 25th quantile / 2
     """
@@ -723,9 +724,9 @@ def resolution_response(arr):
 
 
 def plot_jetresolution(
-    responseabc,
-    responsedistil,
-    responsepuppi,
+    responseabc: float,
+    responsedistil: float,
+    responsepuppi: float,
     results_dir: str,
     results_dir_pdf: str,
     ptcut: int,
@@ -824,10 +825,10 @@ def plot_jetresolution(
 
 
 def plot_jetenergy(
-    abcjetE,
-    puppijetE,
-    distiljetE,
-    genjetE,
+    abcjetE: list,
+    puppijetE: list,
+    distiljetE: list,
+    genjetE: list,
     results_dir: str,
     results_dir_pdf: str,
     ptcut: int,
@@ -893,9 +894,9 @@ def plot_jetenergy(
 
 
 def plot_jetratio(
-    abcjetE,
-    puppijetE_true,
-    distiljetE,
+    abcjetE: list,
+    puppijetE_true: list,
+    distiljetE: list,
     results_dir: str,
     results_dir_pdf: str,
     ptcut: int,

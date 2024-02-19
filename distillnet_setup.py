@@ -11,6 +11,7 @@ from tqdm import tqdm
 import numpy as np
 from distillnet_config import hparams, trainparams
 from tayloranalysis.cls import TaylorAnalysis
+from typing import Union, List, Tuple, Dict, Any
 
 
 class WeightedMAE(nn.L1Loss):
@@ -126,7 +127,7 @@ def load_bestmodel(
 
 
 def nn_setup(
-    data,
+    data: tuple[list, list, int, int],
     device: str,
     batch_size: int,
     maketrain_particles: int,
@@ -153,7 +154,7 @@ def nn_setup(
     return model, criterion, optimizer, train_loader, test_loader, test, input_size
 
 
-def calc_datasetweights(truth, is_makeprints: bool = False):
+def calc_datasetweights(truth: list, is_makeprints: bool = False):
     """
     Calculate weights for class imbalance.
     """
@@ -169,16 +170,14 @@ def calc_datasetweights(truth, is_makeprints: bool = False):
     return weights_highval
 
 
-def makedataloaders(dat: tuple, trainsplit: float, batch_size: int, num_particles: int):
+def makedataloaders(dat: Tuple[list, list, int, int], trainsplit: float, batch_size: int, num_particles: int):
     """
     Create pytorch dataloaders based on training and testing split.
     """
     Particles, nfeatures = len(dat[0]), len(dat[0][0])
     num_particles = int(num_particles)
-    validsplit = 1 - trainsplit
     # slice Dataset into train and validation, train containing 80% of the data
     numtrain = int(num_particles * trainsplit)
-    numvalid = int(num_particles * validsplit)  # Validation containing 20%
     test = (
         dat[0][numtrain:num_particles],
         dat[1][numtrain:num_particles],
@@ -207,7 +206,7 @@ def makedataloaders(dat: tuple, trainsplit: float, batch_size: int, num_particle
 
 
 def validation(
-    model, device, valid_loader, loss_function, weights_highval, is_weighted_error: bool = False
+    model: Union[DistillNet, nn.Module], device: str, valid_loader, loss_function, weights_highval: int, is_weighted_error: bool = False
 ):
     """
     Calculate validation loss per epoch for model.
@@ -233,13 +232,13 @@ def validation(
 
 
 def do_training(
-    model,
+    model: Union[DistillNet, nn.Module],
     criterion,
     optimizer,
     device: str,
     train_loader,
     test_loader,
-    test,
+    test: list,
     savedir: str,
     modelsavedir: str,
     saveinfo: str,
@@ -408,7 +407,7 @@ def do_training(
         return model, losslist, validationloss
 
 
-def modelpredictions(model, dataloader, batch_size: int, device: str):
+def modelpredictions(model: Union[DistillNet, nn.Module], dataloader, batch_size: int, device: str):
     """
     Make DistillNet weight predictions for input dataloader.
     """
@@ -423,7 +422,7 @@ def modelpredictions(model, dataloader, batch_size: int, device: str):
     return op
 
 
-def modelpredictions_complete(model, dataloader, device):
+def modelpredictions_complete(model: Union[DistillNet, nn.Module], dataloader, device: str):
     model.to(device)
     model.eval()
     with torch.no_grad():

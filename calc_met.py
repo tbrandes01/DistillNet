@@ -18,7 +18,7 @@ matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
 
-def resolution(arr, gen):
+def resolution(arr: list, gen: list) -> float:
     """
     Calculate resolution of physical quantity as difference between the 75th and 25th quantile / 2
     """
@@ -28,14 +28,14 @@ def resolution(arr, gen):
     return resolutions
 
 
-def genfunc(arr, gen):
+def genfunc(arr: list, gen: list) -> np.ndarray:
     """
     Calculate response function as (reconstructed - generated) / generated
     """
     return (np.array(arr) - np.array(gen)) / np.array(gen)
 
 
-def makevec(pt, phi):
+def makevec(pt: list, phi: list):
     """
     Create a vector using polar coordinates
     """
@@ -44,7 +44,7 @@ def makevec(pt, phi):
     return x, y
 
 
-def makevec_vers2(pt, phi):
+def makevec_vers2(pt: list, phi: list):
     """
     Create a vector using polar coordinates, different syntax
     """
@@ -53,14 +53,14 @@ def makevec_vers2(pt, phi):
     return np.array([x, y])
 
 
-def mag(vec):
+def mag(vec: tuple) -> float:
     """
     Get magnitude of vector
     """
     return np.sqrt((np.sum(vec[0]) ** 2) + (np.sum(vec[1]) ** 2))
 
 
-def Metcalc(vec, weights):
+def Metcalc(vec: tuple, weights: list) -> float:
     """
     Calculate Missing Transverse Energy based on pt and phi quantities.\n
     In Addition, the pt vector is scaled according to the per-particle weight of the respective algorithm
@@ -73,7 +73,7 @@ def Metcalc(vec, weights):
     return ET_magnitude
 
 
-def Metcalc_gen(lvec):
+def Metcalc_gen(lvec: tuple) -> float:
     """
     Calculate Missing Transverse Energy based on pt and phi quantities.\n
     No weight rescaling needed as this is on the generator level.
@@ -248,7 +248,7 @@ def get_met_pyhsicstest(
 
 
 def make_resolutionplots(
-    met_a, met_p, met_d, met_g, plotdir, saveinfo, timestr, is_displayplots: bool = False
+    met_a: list, met_p: list, met_d: list, met_g: list, plotdir: str, saveinfo: str, timestr: str, is_displayplots: bool = False
 ):
     """
     Create MET resolution plots for GNN, Puppi and DistillNet
