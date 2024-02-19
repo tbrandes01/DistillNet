@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(description="Parsing Event_args")
 # Step 3: Define the command-line arguments
 parser.add_argument("--min_event", type=int, help="Min_event for jet clustering")
 parser.add_argument("--max_event", type=int, help="Max_event for jet clustering")
-parser.add_argument("--sample", type=str, help="Sample processed, options are wjets or ttbar")
+parser.add_argument("--sample", type=str, help="Sample processed, options are wjets or ttbar", default='ttbar')
 parser.add_argument("--ptcut", type=int, help="Applied cut on pt values", default=15)
 parser.add_argument(
     "--is_abc", action="store_false", help="Perform ABC and PUPPI clustering (default: False)"

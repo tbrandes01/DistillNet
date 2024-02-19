@@ -12,17 +12,12 @@ import torch.utils.data as data
 from tqdm import tqdm
 import sys
 import timeit
-
-# Get the parent directory
-parent_dir = os.path.dirname(os.path.realpath(__file__))
-# Add the parent directory to sys.path
-sys.path.append(parent_dir)
 from distillnet_setup import load_bestmodel
 from data_helpers import fl_inputs, gettraindata, join_and_makedir
 from distillnet_config import hparams, trainparams, dirs, bool_val
 
 
-def time_forwardpass(model, dataloader, batch_size, num_eventparticles):
+def time_forwardpass(model, dataloader, batch_size: int, num_eventparticles: int):
     """
     Time forwardpass for DistillNet for given variable batch of particles.
     """
