@@ -21,7 +21,15 @@ def vec3d(pt: list, phi: list, eta: list):
     return px, py, pz
 
 
-def Jetmatching(dRcrit: float, pslistjet1: list, pslistjet2: list, JetE1: list, JetE2: list, Jetpt1: list, Jetpt2: list):
+def Jetmatching(
+    dRcrit: float,
+    pslistjet1: list,
+    pslistjet2: list,
+    JetE1: list,
+    JetE2: list,
+    Jetpt1: list,
+    Jetpt2: list,
+):
     """
     Match 2 lists of jets based on dR criteria.
     """
