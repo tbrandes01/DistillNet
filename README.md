@@ -1,6 +1,6 @@
 # DistillNet: Fast Particle Reconstruction using Neural Networks
 
-DistillNet is an implementation of the model described in the paper titled  ["Distilling particle knowledge for fast reconstruction at high-energy physics experiments"](https://doi.org/10.48550/arXiv.2311.12551) (A. Bal, T. Brandes, F. Iemmi, M. KLute, B. Maier, V. Mikuni, T. K. Arrestad). The model is designed for fast and efficient Pileup removal tasks in high-energy physics experiments.
+DistillNet is an implementation of the model described in the paper titled  ["Distilling particle knowledge for fast reconstruction at high-energy physics experiments"](https://doi.org/10.48550/arXiv.2311.12551) (A. Bal, T. Brandes, F. Iemmi, M. Klute, B. Maier, V. Mikuni, T. K. Arrestad). The model is designed for fast and efficient Pileup removal tasks in high-energy physics experiments.
 
 ## Getting Started
 
