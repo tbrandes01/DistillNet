@@ -11,6 +11,7 @@ To use DistillNet, follow these steps:
 2. **Install Dependencies**: Install the required dependencies listed in `requirements.txt` by running:
    ```bash
    pip install -r requirements.txt
+   pip install git+https://github.com/lsowa/tayloranalysis.git
     ```
 3. **Configuration**: Modify the configuration file (distillnet_config.py) to set the desired filepaths for the downloaded dataset ([link to dataset](https://doi.org/10.5281/zenodo.10670183)) and other parameters.
 
