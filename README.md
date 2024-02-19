@@ -12,12 +12,13 @@ To use DistillNet, follow these steps:
    ```bash
    pip install -r requirements.txt
     ```
-3. **Configuration**: Modify the configuration file (distillnet_config.py) to set the desired filepaths for the downloaded dataset ([link to dataset](https://doi.org/10.5281/zenodo.10670183) and other parameters.
+3. **Configuration**: Modify the configuration file (distillnet_config.py) to set the desired filepaths for the downloaded dataset ([link to dataset](https://doi.org/10.5281/zenodo.10670183)) and other parameters.
 
 4. **Training**: Execute the train_distillnet.py script to train the DistillNet model using the downloaded dataset.
 
+
 #### Taylor Analysis Module
-For further analysis, you can utilize the Taylor Analysis Module available at from[GitHub](https://github.com/lsowa/tayloranalysis). This module assists in understanding the importance of input features for the neural network's output.
+For further analysis, you can utilize the Taylor Analysis Module available at from [GitHub](https://github.com/lsowa/tayloranalysis). This module assists in understanding the importance of input features for the neural network's output.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
