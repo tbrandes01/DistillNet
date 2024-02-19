@@ -14,6 +14,7 @@ from typing import Tuple, List
 from data_helpers import convertvec_etaphipt
 from distillnet_setup import modelpredictions, FeatureDataset
 from distillnet_config import hparams, trainparams
+
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -248,7 +249,14 @@ def get_met_pyhsicstest(
 
 
 def make_resolutionplots(
-    met_a: list, met_p: list, met_d: list, met_g: list, plotdir: str, saveinfo: str, timestr: str, is_displayplots: bool = False
+    met_a: list,
+    met_p: list,
+    met_d: list,
+    met_g: list,
+    plotdir: str,
+    saveinfo: str,
+    timestr: str,
+    is_displayplots: bool = False,
 ):
     """
     Create MET resolution plots for GNN, Puppi and DistillNet

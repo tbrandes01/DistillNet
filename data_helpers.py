@@ -15,6 +15,7 @@ from joblib import dump, load
 import pandas as pd
 import gc
 from typing import Union, Tuple, List
+
 matplotlib.rc("font", size=22, family="serif")
 matplotlib.rcParams["text.usetex"] = True
 
@@ -85,7 +86,7 @@ def makelog(arr: list) -> np.ndarray:
     return np.log(arr)
 
 
-def calcresponse(arr: list, genarr: list) -> np.ndarray: 
+def calcresponse(arr: list, genarr: list) -> np.ndarray:
     """
     Calculate response of an array.
     """
@@ -121,10 +122,11 @@ def make_finalprints(
     print("Saveinfo:", saveinfo)
     print("Inputs used for training:", flist_names)
     print("Total number of inputs:", len(flist_inputs))
-    
 
 
-def convertvec_etaphipt(p_vec: Tuple[list, list, list, list] , is_log: bool = False, is_remove_padding: bool = False) -> None:
+def convertvec_etaphipt(
+    p_vec: Tuple[list, list, list, list], is_log: bool = False, is_remove_padding: bool = False
+) -> None:
     """
     convert vector from px, py and pz to eta, phi and pt.
     """

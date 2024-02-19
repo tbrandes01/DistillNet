@@ -170,7 +170,9 @@ def calc_datasetweights(truth: list, is_makeprints: bool = False):
     return weights_highval
 
 
-def makedataloaders(dat: Tuple[list, list, int, int], trainsplit: float, batch_size: int, num_particles: int):
+def makedataloaders(
+    dat: Tuple[list, list, int, int], trainsplit: float, batch_size: int, num_particles: int
+):
     """
     Create pytorch dataloaders based on training and testing split.
     """
@@ -206,7 +208,12 @@ def makedataloaders(dat: Tuple[list, list, int, int], trainsplit: float, batch_s
 
 
 def validation(
-    model: Union[DistillNet, nn.Module], device: str, valid_loader, loss_function, weights_highval: int, is_weighted_error: bool = False
+    model: Union[DistillNet, nn.Module],
+    device: str,
+    valid_loader,
+    loss_function,
+    weights_highval: int,
+    is_weighted_error: bool = False,
 ):
     """
     Calculate validation loss per epoch for model.

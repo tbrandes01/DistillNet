@@ -13,9 +13,9 @@ from typing import Tuple, List
 
 class Argparser(Tap):
     """
-    Arguments: Specifiy cuda number for which gpu you wish to use, specify savedir for directory to save ensembles in, 
+    Arguments: Specifiy cuda number for which gpu you wish to use, specify savedir for directory to save ensembles in,
     numtests for the number of trainings to be executed,
-    wmin as minimum weighted loss multiplicity value, wmax as maximum weighted loss multiplicity value, 
+    wmin as minimum weighted loss multiplicity value, wmax as maximum weighted loss multiplicity value,
     step for the number of steps between wmin and wmax,
     """
 
