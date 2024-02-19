@@ -31,6 +31,6 @@ bool_val = {
     "is_min_max_scaler": False,  # Use min max scaler for scaling input training data
     "is_standard_scaler": True,  # Use standard scaler for scaling input training data
     "is_dtrans": False,  # Trainsform Input data from variable d0 and dZ to be in Interval abs(d0 or dZ) < 1; to aid input normalization due to outliers
-    "is_do_taylor": True,  # Do Taylor analysis on input features
+    "is_do_taylor": False,  # Do Taylor analysis on input features
     "is_weighted_error": True,  # Use weighted MAE Error in training
 }
